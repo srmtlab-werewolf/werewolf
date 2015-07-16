@@ -83,6 +83,18 @@ public class MySeer extends AbstractSeer {
 		BODYGUARDNum = AliveBODYGUARDNum = gameSetting.getRoleNum(Role.BODYGUARD);
 		WEREWOLFNum = AliveWEREWOLFNum = gameSetting.getRoleNum(Role.WEREWOLF);
 		POSSESSEDNum = AlivePOSSESSEDNum = gameSetting.getRoleNum(Role.POSSESSED);
+		if(FAgent.get(0) == null){
+			FAgent.put(0, new ArrayList<Agent>());}
+		if(FAgent.get(1) == null){
+			FAgent.put(1, new ArrayList<Agent>());}
+		if(FAgent.get(2) == null){
+			FAgent.put(2, new ArrayList<Agent>());}
+		if(FAgent.get(3) == null){
+			FAgent.put(3, new ArrayList<Agent>());}
+		if(FAgent.get(4) == null){
+			FAgent.put(4, new ArrayList<Agent>());}
+		if(FAgent.get(5) == null){
+			FAgent.put(5, new ArrayList<Agent>());}
 		for(i = 1; i <= MaxNum;i++){
 		if(lasttalkvot.get(Agent.getAgent(i)) == null){
 			lasttalkvot.put(Agent.getAgent(i), new ArrayList<Utterance>());
@@ -295,6 +307,24 @@ public class MySeer extends AbstractSeer {
 			System.out.printf("\n");
 		}
 	}
+	int ThinkJ[] = new int[16];
+	Map<Integer,List<Agent>> FAgent = new HashMap<Integer,List<Agent>>();
+	List<Agent> AllAgent = new ArrayList<Agent>();
+	
+	void usefinish(int R, int Nu1){//Rは各役職，Nu1は役職の人数，村なら８
+		double Min;
+		Agent agtt = Agent.getAgent(1);
+		for(int gi = 1; gi <= Nu1; gi++){
+			Min = 0.0;
+		for(int li = 0;li < AllAgent.size(); li++){
+			if(Min < MyThinkJob[AllAgent.get(li).getAgentIdx()][R]){
+				agtt = Agent.getAgent(AllAgent.get(li).getAgentIdx());
+				Min = MyThinkJob[AllAgent.get(li).getAgentIdx()][R];}
+		}
+		AllAgent.remove(agtt);
+		ThinkJ[agtt.getAgentIdx()] = R;
+		}
+	}
 	
 	@Override
 	public void finish() {
@@ -315,6 +345,62 @@ public class MySeer extends AbstractSeer {
 		for(k = 1; k <= MaxNum; k++){
 			System.out.printf("%.3f|",sum1[k]);}
 		System.out.printf("\n");
+		AllAgent.addAll(gameInfo1.getAgentList());
+		usefinish(4,WEREWOLFNum);
+		System.out.printf("%d\n",WEREWOLFNum);
+		usefinish(5,POSSESSEDNum);
+		usefinish(1,SEERNum);
+		usefinish(2,MEDIUMNum);
+		usefinish(3,BODYGUARDNum);
+		usefinish(0,VILLAGERNum);
+		for(k = 1; k <= MaxNum; k++){
+			switch(ThinkJ[k]){
+			case 0:
+				System.out.printf("VILLA|");
+				break;
+			case 1:
+				System.out.printf("SEER |");
+				break;
+			case 2:
+				System.out.printf("MEDIU|");
+				break;
+			case 3:
+				System.out.printf("BODYG|");
+				break;
+			case 4:
+				System.out.printf("WEREW|");
+				break;
+			case 5:
+				System.out.printf("POSSE|");
+				break;
+			default:
+				break;
+			}}
+		System.out.printf("予想\n");
+		for(k = 1; k <= MaxNum; k++){
+			switch(gameInfo1.getRoleMap().get(Agent.getAgent(k))){
+			case VILLAGER:
+				System.out.printf("VILLA|");
+				break;
+			case SEER:
+				System.out.printf("SEER |");
+				break;
+			case MEDIUM:
+				System.out.printf("MEDIU|");
+				break;
+			case BODYGUARD:
+				System.out.printf("BODYG|");
+				break;
+			case WEREWOLF:
+				System.out.printf("WEREW|");
+				break;
+			case POSSESSED:
+				System.out.printf("POSSE|");
+				break;
+			default:
+				break;
+			}}
+		System.out.printf("結果\n");
 		for(i = 0; i < judgeList.size(); i++){
 		System.out.printf("%s:%s",judgeAgentList.get(i),judgeList.get(i).getResult());
 		System.out.printf("\n");}
@@ -397,7 +483,8 @@ public class MySeer extends AbstractSeer {
 	int BGA = 0;//襲撃者なしが起きると１にする
 	int FirstMEDIUMCODay = 100;
 	int FirstSeerCODay = 100;
-	void think(int nowday) {
+	
+	void think(int nowday) {//daystartで呼び出す役職共通部分
 		if(nowday >= 2){//二日目以降は死者がでるので
 			System.out.printf("Think");
 			System.out.println(gameInfo1.getExecutedAgent());
@@ -420,8 +507,8 @@ public class MySeer extends AbstractSeer {
 			if(vot.get(nowday - 1) == null){//今日の日付の前の日の投票結果はまだ入ってないだろうので
 				vot.put(nowday - 1, new ArrayList<Vote>());//新しい日付の完成
 			}
-			vot.get(nowday - 1).addAll(gameInfo1.getVoteList());
-			for(i = 0; i < vot.get(nowday - 1).size(); i++){
+			vot.get(nowday - 1).addAll(gameInfo1.getVoteList());//投票結果を入れる
+			for(i = 0; i < vot.get(nowday - 1).size(); i++){//投票結果をそれぞれ処理
 				
 			DHT(vot.get(nowday - 1).get(i).getAgent().getAgentIdx(),vot.get(nowday - 1).get(i).getTarget().getAgentIdx(),WV);
 			if(vot.get(nowday - 1).get(i).getTarget() == getMe() && isComingOut == true){//カミングアウトした自分に投票する相手の人外値を上昇
@@ -484,14 +571,9 @@ public class MySeer extends AbstractSeer {
 			
 		}
 	}
-	
-	@Override
-	public void dayStart(){
-		super.dayStart();
+	void commondayStart(){
 		readTalkNum = 0;
 		isVote = false;
-		int MyState = 0;
-		MM = 1;
 		nowday = gameInfo1.getDay();
 		if(gameInfo1.getAliveAgentList().contains(getMe())){
 			MyState = 0;
@@ -499,8 +581,15 @@ public class MySeer extends AbstractSeer {
 			MyState = 1;
 			}
 		//初期化の前に異常がなかったかだけ確認
-		
-		
+	}
+	
+	int MyState = 0;
+	
+	@Override
+	public void dayStart(){
+		super.dayStart();
+		commondayStart();
+		MM = 1;
 		if(MyState == 0){
 			//mrap.commonThink(nowday);
 			//think(nowday);
@@ -513,10 +602,9 @@ public class MySeer extends AbstractSeer {
 				WhiteAgent.add(gameInfo1.getDivineResult().getTarget());
 						MyThinkJob[gameInfo1.getDivineResult().getTarget().getAgentIdx()][4] = 0.0;
 						System.out.printf("番号%d\n", gameInfo1.getDivineResult().getTarget().getAgentIdx());
-						//for(i = 0; i < 6; i++){
-							//System.out.printf("%.3f", MyThinkJob[gameInfo1.getDivineResult().getAgent().getAgentIdx()][4]);}
 						CleanJob(gameInfo1.getDivineResult().getTarget().getAgentIdx());}
 			else if(gameInfo1.getDivineResult().getResult() == Species.WEREWOLF){
+				System.out.printf("狼発見\n");
 				BlackAgent.add(gameInfo1.getDivineResult().getTarget());
 				WEREWOLFAgent.add(gameInfo1.getDivineResult().getTarget());
 				AliveWEREWOLFAgent.add(gameInfo1.getDivineResult().getTarget());
@@ -528,9 +616,7 @@ public class MySeer extends AbstractSeer {
 					AlivefakeMEDIUMAgent.add(gameInfo1.getDivineResult().getTarget());
 				}
 				for(i = 0;i <= 5; i++){
-					if(i != 4){
-						MyThinkJob[gameInfo1.getDivineResult().getTarget().getAgentIdx()][i] = 0;}}
-				//changeProb(gameInfo1.getDivineResult().getTarget(), Species.WEREWOLF, 1.0);
+						MyThinkJob[gameInfo1.getDivineResult().getTarget().getAgentIdx()][i] = 0;}
 				MyThinkJob[gameInfo1.getDivineResult().getTarget().getAgentIdx()][4] = 1.0;
 				WEREWOLFDetectNum++;}
 			ChangeJob(gameInfo1.getDivineResult().getTarget().getAgentIdx(),100,100,100,100);
@@ -541,6 +627,7 @@ public class MySeer extends AbstractSeer {
 		output();
 	}
 	int MM = 0;
+	List<Agent> SeerCOAgent = new ArrayList<Agent>();
 	List<Agent> fakeSeerCOAgent = new ArrayList<Agent>();
 	List<Agent> AlivefakeSeerCOAgent = new ArrayList<Agent>();
 	List<Agent> fakeMEDIUMAgent = new ArrayList<Agent>();
