@@ -1,29 +1,29 @@
 package org.aiwolf.myAgent;
 
-import org.aiwolf.client.base.player.AbstractSeer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import org.aiwolf.client.base.player.AbstractMedium;
 import org.aiwolf.client.lib.TemplateTalkFactory;
-import org.aiwolf.client.lib.Topic;
 import org.aiwolf.client.lib.Utterance;
 import org.aiwolf.common.data.Agent;
 import org.aiwolf.common.data.Judge;
 import org.aiwolf.common.data.Role;
-import org.aiwolf.common.data.Talk;
 import org.aiwolf.common.data.Species;
+import org.aiwolf.common.data.Talk;
 import org.aiwolf.common.data.Vote;
 import org.aiwolf.common.net.GameInfo;
 import org.aiwolf.common.net.GameSetting;
-import org.aiwolf.common.data.Status;
 
-import java.util.*;
-
-public class MySeer extends AbstractSeer {
+public class MyMedium extends AbstractMedium {
 
 	MyRoleAssignPlayer mrap;
 	int i,k,s;
 	
 	
 	
-	public MySeer(MyRoleAssignPlayer mrap) {
+	public MyMedium(MyRoleAssignPlayer mrap) {
 		super();
 		this.mrap = mrap;
 		
@@ -31,17 +31,6 @@ public class MySeer extends AbstractSeer {
 	
 
 	
-	//List<List<Utterance>> mrap.inq = new ArrayList<List<Utterance>>();
-	
-	// if (mrap.inq.get(a) == null) {
-	//   mrap.inq.put(a, new ArrayList<Utterance));  // initialize
-	// }
-	// List<Utterance> uttlist = mrap.inq.get(a);
-	// uttlist.add(hatsugen);
-	
-	// for (Utterance u : uttlist) {
-	//   
-	// }
 
 	
 	@Override
@@ -56,8 +45,7 @@ public class MySeer extends AbstractSeer {
 		mrap.WEREWOLFNum = mrap.AliveWEREWOLFNum = gameSetting.getRoleNum(Role.WEREWOLF);
 		mrap.POSSESSEDNum = mrap.AlivePOSSESSEDNum = gameSetting.getRoleNum(Role.POSSESSED);
 		mrap.myrole = gameInfo.getRole();
-		mrap.SEERDetectNum = 1;
-		
+		mrap.MEDIUMDetectNum = 1;
 		for(int L = 0; L < mrap.MaxNum; L++){
 			mrap.DetectWPO[L] = 0;
 		}//他役職の人外露出数を記録
@@ -73,8 +61,8 @@ public class MySeer extends AbstractSeer {
 		for( i = 1;i <= mrap.MaxNum;i++){
 			if(i != mrap.MyNum){
 			mrap.MyThinkJob[i][0] = 8.0 / (mrap.MaxNum - 1.0);
-			mrap.MyThinkJob[i][1] = 0;
-			mrap.MyThinkJob[i][2] = 1.0 / (mrap.MaxNum - 1.0);
+			mrap.MyThinkJob[i][1] = 1.0 / (mrap.MaxNum - 1.0);
+			mrap.MyThinkJob[i][2] = 0.0;
 			mrap.MyThinkJob[i][3] = 1.0 / (mrap.MaxNum - 1.0);
 			mrap.MyThinkJob[i][4] = 3.0 / (mrap.MaxNum - 1.0);
 			mrap.MyThinkJob[i][5] = 1.0 / (mrap.MaxNum - 1.0);
@@ -82,8 +70,8 @@ public class MySeer extends AbstractSeer {
 			}
 			else{
 				mrap.MyThinkJob[i][0] = 0;
-				mrap.MyThinkJob[i][1] = 1.0;
-				mrap.MyThinkJob[i][2] = 0;
+				mrap.MyThinkJob[i][1] = 0;
+				mrap.MyThinkJob[i][2] = 1.0;
 				mrap.MyThinkJob[i][3] = 0;
 				mrap.MyThinkJob[i][4] = 0;
 				mrap.MyThinkJob[i][5] = 0;
@@ -91,7 +79,7 @@ public class MySeer extends AbstractSeer {
 			}
 		for(i=0;i < 16;i++){
 			for(k= 0;k < 6;k++){
-				mrap.ThinkMEDIUMJob[i][k] = mrap.MyThinkJob[i][k]; 
+				mrap.ThinkSEERJob[i][k] = mrap.MyThinkJob[i][k]; 
 			}}
 		for(i=0;i < 16;i++){
 			for(k= 0;k < 16;k++){
@@ -102,106 +90,23 @@ public class MySeer extends AbstractSeer {
 		output();
 	}
 	
-	@Override
-	public Agent divine() {
-		List<Agent> divineCandidates = new ArrayList<Agent>();//自分で占ってない生きている人リスト
-		List<Agent> divineGrayCandidates = new ArrayList<Agent>();//誰も占ってない生きているリスト
-		divineCandidates.addAll(getLatestDayGameInfo().getAliveAgentList());
-		divineCandidates.remove(getMe());
-		for(Judge judge: getMyJudgeList()){
-		if(divineCandidates.contains(judge.getTarget())){
-			divineCandidates.remove(judge.getTarget());
-		}}
-		divineGrayCandidates.addAll(divineCandidates);//霊能占い師除く完グレを選択
-		for(i = 0;i < mrap.MEDIUMCOAgent.size(); i++){
-			if(divineGrayCandidates.contains(mrap.MEDIUMCOAgent.get(i))){
-				divineGrayCandidates.remove(mrap.MEDIUMCOAgent.get(i));
-				divineCandidates.remove(mrap.MEDIUMCOAgent.get(i));
-			}
-		}
-		for(i = 0;i < mrap.fakeMEDIUMAgent.size(); i++){
-			if(divineGrayCandidates.contains(mrap.fakeMEDIUMAgent.get(i))){
-				divineGrayCandidates.remove(mrap.fakeMEDIUMAgent.get(i));
-				divineCandidates.remove(mrap.fakeMEDIUMAgent.get(i));
-			}
-		}
-		for(i = 0;i < mrap.fakeSeerCOAgent.size();i++){
-			if(divineGrayCandidates.contains(mrap.fakeSeerCOAgent.get(i))){
-				divineGrayCandidates.remove(mrap.fakeSeerCOAgent.get(i));
-				divineCandidates.remove(mrap.fakeSeerCOAgent.get(i));}
-			for(k = 0;k < mrap.div.get(mrap.fakeSeerCOAgent.get(i)).size();k++){//他の占い師が占った先も除く
-				if(divineGrayCandidates.contains(mrap.div.get(mrap.fakeSeerCOAgent.get(i)).get(k).getTarget())){
-					divineGrayCandidates.remove(mrap.div.get(mrap.fakeSeerCOAgent.get(i)).get(k).getTarget());
-				}
-			}
-		}
-		
-		double ran = ((mrap.gameInfo1.getDay() - 1) * 0.4) + 0.2;
-		if(ran > 1.0){
-			ran = 1.0;}
-		if(mrap.nowday < 3){
-		if(divineGrayCandidates.size() > 0){//完グレ選択
-			int talkNum = 0;
-			Agent Grayagt = divineGrayCandidates.get(0);
-			for(i = 0; i < divineGrayCandidates.size();i++){//俗にいう多弁占い
-				if(talkNum < mrap.DayTalkNum[mrap.nowday][divineGrayCandidates.get(i).getAgentIdx()]){
-					talkNum = mrap.DayTalkNum[mrap.nowday][divineGrayCandidates.get(i).getAgentIdx()];
-				Grayagt = divineGrayCandidates.get(i);
-				}}
-			if(talkNum > 0 && ran > Math.random()){
-				return Grayagt;
-			}
-			return randomSelect(divineGrayCandidates);}
-	       else{
-			return getMe();//なければ自分
-		}}
-		else if(mrap.nowday >= 3){
-			if(divineGrayCandidates.size() > 0){//完グレ選択
-				double MJ = 0.0;
-				Agent Grayagt = divineGrayCandidates.get(0);
-				for(i = 0; i < divineGrayCandidates.size();i++){//俗にいう多弁占い
-					if(MJ < mrap.MyThinkJob[divineGrayCandidates.get(i).getAgentIdx()][4]){
-						MJ =  mrap.MyThinkJob[divineGrayCandidates.get(i).getAgentIdx()][4];
-					Grayagt = divineGrayCandidates.get(i);
-					}}
-				
-				return Grayagt;}//一番怪しいと思っている相手を指定
-			else if(divineCandidates.size() > 0){//自分からのグレー選択
-				double MJ = 0.0;
-				Agent Grayagt = divineGrayCandidates.get(0);
-				for(i = 0; i < divineGrayCandidates.size();i++){//俗にいう多弁占い
-					if(MJ < mrap.MyThinkJob[divineGrayCandidates.get(i).getAgentIdx()][4]){
-						MJ =  mrap.MyThinkJob[divineGrayCandidates.get(i).getAgentIdx()][4];
-					Grayagt = divineGrayCandidates.get(i);
-					}}
-				
-				return Grayagt;
-			}else{
-				return getMe();//なければ自分
-			}
-		}
-		else{
-			return getMe();
-		}
-	}
-	
 	
 	
 	
 	public void output(){
 		double sum;
 		double sum1[] = new double[16];;
-		if(mrap.MediNum != 0){
-			System.out.printf("ThinkMEDIUMJob:from:Agent%d\n",mrap.MediNum);
+		if(mrap.SeerNum != 0){
+			System.out.printf("ThinkSEERJob:from:Agent%d\n",mrap.SeerNum);
 			for(i = 1; i <= mrap.MaxNum; i++){
 				System.out.printf("AGT%2d|",i);}
 			System.out.printf("\n");
 			for(i = 0; i < 6; i++){
 				sum = 0;
 				for(k = 1; k < 16; k++){
-			System.out.printf("%.3f|",mrap.ThinkMEDIUMJob[k][i]);
-			sum = sum + mrap.ThinkMEDIUMJob[k][i];
-			sum1[k] = sum1[k] + mrap.ThinkMEDIUMJob[k][i]; 
+			System.out.printf("%.3f|",mrap.ThinkSEERJob[k][i]);
+			sum = sum + mrap.ThinkSEERJob[k][i];
+			sum1[k] = sum1[k] + mrap.ThinkSEERJob[k][i]; 
 				}
 				System.out.printf("合計%.3f", sum);
 				System.out.println("\n");}
@@ -209,7 +114,7 @@ public class MySeer extends AbstractSeer {
 				System.out.printf("%.3f|",sum1[k]);}
 			System.out.printf("\n");	
 		}
-		else if(mrap.MediNum == 0){
+		else if(mrap.SeerNum == 0){
 		System.out.printf("mrap.MyThinkJob\n");
 		for(i = 1; i <= mrap.MaxNum; i++){
 			System.out.printf("AGT%2d|",i);}
@@ -229,24 +134,25 @@ public class MySeer extends AbstractSeer {
 		for(i = 0; i < mrap.judgeList.size(); i++){
 		System.out.printf("%s:%s",mrap.judgeAgentList.get(i),mrap.judgeList.get(i).getResult());
 		System.out.printf("\n");}
+		System.out.printf("占い師COリスト");
+		System.out.println(mrap.SeerCOAgent);
+		System.out.printf("生きている占い師COリスト");
+		System.out.println(mrap.AliveSeerCOAgent);
+		for(i = 0; i < mrap.SeerCOAgent.size(); i++){
+			System.out.printf("%s:%d\n", mrap.SeerCOAgent.get(i),mrap.DetectWPO[mrap.SeerCOAgent.get(i).getAgentIdx()]);
+		}
 		System.out.printf("偽占いCOリスト");
 		System.out.println(mrap.fakeSeerCOAgent);
 		System.out.printf("生きている偽占いCOリスト");
 		System.out.println(mrap.AlivefakeSeerCOAgent);
-		System.out.printf("霊能COリスト");
-		System.out.println(mrap.MEDIUMCOAgent);
-		System.out.printf("生きている霊能COリスト");
-		System.out.println(mrap.AliveMEDIUMCOAgent);
-		for(i = 0; i < mrap.MEDIUMCOAgent.size(); i++){
-			System.out.printf("%s:%d\n", mrap.MEDIUMCOAgent.get(i),mrap.DetectWPO[mrap.MEDIUMCOAgent.get(i).getAgentIdx()]);
+		for(i = 0; i < mrap.fakeSeerCOAgent.size(); i++){
+			System.out.printf("%s:%d\n", mrap.fakeSeerCOAgent.get(i),mrap.DetectWPO[mrap.fakeSeerCOAgent.get(i).getAgentIdx()]);
 		}
 		System.out.printf("偽霊能COリスト");
 		System.out.println(mrap.fakeMEDIUMAgent);
 		System.out.printf("生きている偽霊能COリスト");
 		System.out.println(mrap.AlivefakeMEDIUMAgent);
-		for(i = 0; i < mrap.fakeMEDIUMAgent.size(); i++){
-			System.out.printf("%s:%d\n", mrap.fakeMEDIUMAgent.get(i),mrap.DetectWPO[mrap.fakeMEDIUMAgent.get(i).getAgentIdx()]);
-		}
+		
 		System.out.printf("見つけた狼リスト");
 		System.out.println(mrap.WEREWOLFAgent);
 		System.out.printf("生きている見つけた狼リスト");
@@ -285,7 +191,6 @@ public class MySeer extends AbstractSeer {
 		System.out.printf("\n");
 		mrap.AllAgent.addAll(mrap.gameInfo1.getAgentList());
 		mrap.usefinish();
-		
 		System.out.printf("予想\n");
 		for(k = 1; k <= mrap.MaxNum; k++){
 			switch(mrap.gameInfo1.getRoleMap().get(Agent.getAgent(k))){
@@ -314,14 +219,14 @@ public class MySeer extends AbstractSeer {
 		for(i = 0; i < mrap.judgeList.size(); i++){
 			System.out.printf("%s:%s",mrap.judgeAgentList.get(i),mrap.judgeList.get(i).getResult());
 			System.out.printf("\n");}
+			System.out.printf("占い師COリスト");
+			System.out.println(mrap.SeerCOAgent);
+			System.out.printf("生きている占い師COリスト");
+			System.out.println(mrap.AliveSeerCOAgent);
 			System.out.printf("偽占いCOリスト");
 			System.out.println(mrap.fakeSeerCOAgent);
 			System.out.printf("生きている偽占いCOリスト");
 			System.out.println(mrap.AlivefakeSeerCOAgent);
-			System.out.printf("霊能COリスト");
-			System.out.println(mrap.MEDIUMCOAgent);
-			System.out.printf("生きている霊能COリスト");
-			System.out.println(mrap.AliveMEDIUMCOAgent);
 			System.out.printf("偽霊能COリスト");
 			System.out.println(mrap.fakeMEDIUMAgent);
 			System.out.printf("生きている偽霊能COリスト");
@@ -340,21 +245,21 @@ public class MySeer extends AbstractSeer {
 			}
 	}
 	
-    public void MeUp(Agent agt){//引数の霊能者の情報をmrap.ThinkMEDIUMJobに反映させる
+    public void SeUp(Agent agt){//引数の占い師の情報をmrap.ThinkSEERJobに反映させる
     	int MeI;
     	int Mk;
-    	for(MeI = 0; MeI < mrap.inq.get(agt).size();MeI++){
-    		if(!mrap.judgeAgentList.contains(mrap.inq.get(agt).get(MeI).getTarget())){
-    	if(mrap.inq.get(agt).get(MeI).getResult() == Species.HUMAN){
-    	mrap.ThinkMEDIUMJob[mrap.inq.get(agt).get(MeI).getTarget().getAgentIdx()][4] = 0.0;}
-    	else if(mrap.inq.get(agt).get(MeI).getResult() == Species.WEREWOLF){
-    		if(!mrap.fakeSeerCOAgent.contains(mrap.inq.get(agt).get(MeI)) && !mrap.MEDIUMCOAgent.contains(mrap.inq.get(agt).get(MeI)) && !mrap.fakeMEDIUMAgent.contains(mrap.inq.get(agt).get(MeI))){
-    			mrap.MeDetectWP++;
+    	for(MeI = 0; MeI < mrap.div.get(agt).size();MeI++){
+    		if(!mrap.judgeAgentList.contains(mrap.div.get(agt).get(MeI).getTarget())){
+    	if(mrap.div.get(agt).get(MeI).getResult() == Species.HUMAN){
+    	mrap.ThinkSEERJob[mrap.div.get(agt).get(MeI).getTarget().getAgentIdx()][4] = 0.0;}
+    	else if(mrap.div.get(agt).get(MeI).getResult() == Species.WEREWOLF){
+    		if(!mrap.fakeSeerCOAgent.contains(mrap.div.get(agt).get(MeI)) && !mrap.SeerCOAgent.contains(mrap.div.get(agt).get(MeI)) && !mrap.fakeMEDIUMAgent.contains(mrap.div.get(agt).get(MeI))){
+    			mrap.SeDetectWP++;
     		}
     		for(Mk = 0; Mk < 6; Mk++){
-    		mrap.ThinkMEDIUMJob[mrap.inq.get(agt).get(MeI).getTarget().getAgentIdx()][Mk] = 0.0;
+    		mrap.ThinkSEERJob[mrap.div.get(agt).get(MeI).getTarget().getAgentIdx()][Mk] = 0.0;
     		}
-    		mrap.ThinkMEDIUMJob[mrap.inq.get(agt).get(MeI).getTarget().getAgentIdx()][4] = 1.0;
+    		mrap.ThinkSEERJob[mrap.div.get(agt).get(MeI).getTarget().getAgentIdx()][4] = 1.0;
     	}
     	}	
     	}
@@ -391,21 +296,21 @@ public class MySeer extends AbstractSeer {
 			mrap.vot.get(mrap.nowday - 1).addAll(mrap.gameInfo1.getVoteList());//投票結果を入れる
 			for(i = 0; i < mrap.vot.get(mrap.nowday - 1).size(); i++){//投票結果をそれぞれ処理
 				if(mrap.vot.get(mrap.nowday - 1).get(i).getAgent() != getMe()){
-			mrap.CHT(mrap.vot.get(mrap.nowday - 1).get(i).getAgent().getAgentIdx(),mrap.vot.get(mrap.nowday - 1).get(i).getTarget().getAgentIdx(),-mrap.WV);}
+			mrap.CHT(mrap.vot.get(mrap.nowday - 1).get(i).getAgent().getAgentIdx(),mrap.vot.get(mrap.nowday - 1).get(i).getTarget().getAgentIdx(),-mrap.WV);}//自分に投票した相手から自分への信頼度を下げる
 			if(mrap.vot.get(mrap.nowday - 1).get(i).getTarget() == getMe() && mrap.isComingOut == true){//カミングアウトした自分に投票する相手の人外値を上昇
 				mrap.UJP(mrap.vot.get(mrap.nowday - 1).get(i).getAgent().getAgentIdx(),Role.WEREWOLF,mrap.WV);
 				mrap.UJP(mrap.vot.get(mrap.nowday - 1).get(i).getAgent().getAgentIdx(),Role.POSSESSED,mrap.WV);}
-			else if(mrap.judgeAgentList.contains(mrap.vot.get(mrap.nowday - 1).get(i).getTarget()) && mrap.isComingOut == true){//投票が自分の占い先でかつ、自分が白を出していた時に
-				if(mrap.judgeList.get(mrap.judgeAgentList.indexOf(mrap.vot.get(mrap.nowday - 1).get(i).getTarget())).getResult() == Species.HUMAN){
-					mrap.CHT(mrap.vot.get(mrap.nowday - 1).get(i).getAgent().getAgentIdx(),getMe().getAgentIdx(),-mrap.WV);
-					mrap.UJP(mrap.vot.get(mrap.nowday - 1).get(i).getAgent().getAgentIdx(),Role.WEREWOLF,0.2);
-					mrap.UJP(mrap.vot.get(mrap.nowday - 1).get(i).getAgent().getAgentIdx(),Role.POSSESSED,0.2);
+			
+			for(s = 0; s < mrap.SeerCOAgent.size();s++){
+				
+				for(k = 0; k < mrap.div.get(mrap.SeerCOAgent.get(s)).size();k++){
+				if(mrap.div.get(mrap.SeerCOAgent.get(s)).get(k).getTarget() == mrap.vot.get(mrap.nowday - 1).get(i).getTarget() && mrap.div.get(mrap.SeerCOAgent.get(s)).get(k).getResult() == Species.HUMAN){
+					mrap.CHT(mrap.vot.get(mrap.nowday - 1).get(i).getAgent().getAgentIdx(),mrap.SeerCOAgent.get(s).getAgentIdx(),-mrap.WV);
 				}
-				else if(mrap.judgeList.get(mrap.judgeAgentList.indexOf(mrap.vot.get(mrap.nowday - 1).get(i).getTarget())).getResult() == Species.WEREWOLF){//投票が自分の占い先でかつ、自分が黒をだしている
-					mrap.CHT(mrap.vot.get(mrap.nowday - 1).get(i).getAgent().getAgentIdx(),getMe().getAgentIdx(),mrap.WV);
-					mrap.DJP(mrap.vot.get(mrap.nowday - 1).get(i).getAgent().getAgentIdx(),Role.WEREWOLF,0.1);
-					mrap.DJP(mrap.vot.get(mrap.nowday - 1).get(i).getAgent().getAgentIdx(),Role.POSSESSED,0.1);
-				}}
+				else if(mrap.div.get(mrap.SeerCOAgent.get(s)).get(k).getTarget() == mrap.vot.get(mrap.nowday - 1).get(i).getTarget() && mrap.div.get(mrap.SeerCOAgent.get(s)).get(k).getResult() == Species.WEREWOLF){
+					mrap.CHT(mrap.vot.get(mrap.nowday - 1).get(i).getAgent().getAgentIdx(),mrap.SeerCOAgent.get(s).getAgentIdx(),mrap.WV);
+				}
+				}}//占い師の白に投票すると言った場合
 			for(s = 0; s < mrap.fakeSeerCOAgent.size();s++){
 				
 				for(k = 0; k < mrap.div.get(mrap.fakeSeerCOAgent.get(s)).size();k++){
@@ -468,27 +373,28 @@ public class MySeer extends AbstractSeer {
 		mrap.commondayStart();
 		mrap.isVote = false;
 		mrap.MM = 1;
+		rp = 1;
 		for(i=0;i < 16;i++){
 			for(k= 0;k < 16;k++){
 			mrap.prelogit[i][k] = mrap.logit[i][k];//前日までの信頼度をここに保存しておく 
 			}}
 		if(mrap.MyState == 0){
-			//commonThink(mrap.nowday);
-			//think(mrap.nowday);
-			if(mrap.nowday >= 1){
-				mrap.judgeList.add(mrap.gameInfo1.getDivineResult());
-				mrap.judgeAgentList.add(mrap.gameInfo1.getDivineResult().getTarget());
+			
+			if(mrap.nowday >= 2){
+				mrap.judgeList.add(mrap.gameInfo1.getMediumResult());
+				mrap.judgeAgentList.add(mrap.gameInfo1.getMediumResult().getTarget());
 				System.out.printf("日にち%d\n", mrap.nowday);
-			if(mrap.gameInfo1.getDivineResult().getResult() == Species.HUMAN){
-				System.out.printf("人間発見\n");
-				mrap.WhiteAgent.add(mrap.gameInfo1.getDivineResult().getTarget());
-						mrap.MyThinkJob[mrap.gameInfo1.getDivineResult().getTarget().getAgentIdx()][4] = 0.0;
-						System.out.printf("番号%d\n", mrap.gameInfo1.getDivineResult().getTarget().getAgentIdx());
-						mrap.CleanJob(mrap.gameInfo1.getDivineResult().getTarget().getAgentIdx());}
-			else if(mrap.gameInfo1.getDivineResult().getResult() == Species.WEREWOLF){
+			if(mrap.gameInfo1.getMediumResult().getResult() == Species.HUMAN){
+				System.out.printf("結果人間\n");
+				mrap.WhiteAgent.add(mrap.gameInfo1.getMediumResult().getTarget());
+						mrap.MyThinkJob[mrap.gameInfo1.getMediumResult().getTarget().getAgentIdx()][4] = 0.0;
+						System.out.printf("番号%d\n", mrap.gameInfo1.getMediumResult().getTarget().getAgentIdx());
+						mrap.CleanJob(mrap.gameInfo1.getMediumResult().getTarget().getAgentIdx());}
+			else if(mrap.gameInfo1.getMediumResult().getResult() == Species.WEREWOLF){
 				System.out.printf("狼発見\n");
 				if(mrap.nowday >= 3){
 					for(int day1 = (mrap.nowday - 2); day1 >= 1; day1--){
+						for(i = 0; i < mrap.vot.get(day1).size(); i++){
 					if(mrap.WEREWOLFAgent.contains(mrap.vot.get(day1).get(i).getTarget())){
 						mrap.DJP(mrap.vot.get(day1).get(i).getAgent().getAgentIdx(),Role.WEREWOLF,0.2);
 						mrap.DJP(mrap.vot.get(day1).get(i).getAgent().getAgentIdx(),Role.POSSESSED,0.2);
@@ -497,34 +403,61 @@ public class MySeer extends AbstractSeer {
 						mrap.DJP(mrap.vot.get(day1).get(i).getTarget().getAgentIdx(),Role.WEREWOLF,0.2);
 						mrap.DJP(mrap.vot.get(day1).get(i).getTarget().getAgentIdx(),Role.POSSESSED,0.2);
 					}//狼が投票した先の人狼確率を下げる
-					}}
-				mrap.BlackAgent.add(mrap.gameInfo1.getDivineResult().getTarget());
-				mrap.WEREWOLFAgent.add(mrap.gameInfo1.getDivineResult().getTarget());
-				mrap.AliveWEREWOLFAgent.add(mrap.gameInfo1.getDivineResult().getTarget());
+						}}}
+				mrap.BlackAgent.add(mrap.gameInfo1.getMediumResult().getTarget());
+				mrap.WEREWOLFAgent.add(mrap.gameInfo1.getMediumResult().getTarget());
 				
-				if(mrap.gameInfo1.getDivineResult().getResult() == Species.WEREWOLF && !mrap.DIVWEREAgent.contains(mrap.gameInfo1.getDivineResult().getTarget())){
-					mrap.DIVWEREAgent.add(mrap.gameInfo1.getDivineResult().getTarget());
+				if(mrap.gameInfo1.getMediumResult().getResult() == Species.WEREWOLF && !mrap.DIVWEREAgent.contains(mrap.gameInfo1.getMediumResult().getTarget())){
+					mrap.DIVWEREAgent.add(mrap.gameInfo1.getMediumResult().getTarget());
 				}
-				if(mrap.fakeMEDIUMAgent.contains(mrap.gameInfo1.getDivineResult().getTarget())){
+				if(mrap.fakeSeerCOAgent.contains(mrap.gameInfo1.getMediumResult().getTarget())){
 					
 				}
-				else if(mrap.MEDIUMCOAgent.contains(mrap.gameInfo1.getDivineResult().getTarget()) && !mrap.fakeMEDIUMAgent.contains(mrap.gameInfo1.getDivineResult().getTarget())){
-					mrap.MEDIUMCOAgent.remove(mrap.gameInfo1.getDivineResult().getTarget());
-					mrap.AliveMEDIUMCOAgent.remove(mrap.gameInfo1.getDivineResult().getTarget());
-					mrap.fakeMEDIUMAgent.add(mrap.gameInfo1.getDivineResult().getTarget());
-					mrap.AlivefakeMEDIUMAgent.add(mrap.gameInfo1.getDivineResult().getTarget());
-					if(mrap.MEDIUMCOAgent.size() + mrap.fakeMEDIUMAgent.size() == 1){
+				else if(mrap.SeerCOAgent.contains(mrap.gameInfo1.getMediumResult().getTarget()) && !mrap.fakeSeerCOAgent.contains(mrap.gameInfo1.getMediumResult().getTarget())){
+					mrap.SeerCOAgent.remove(mrap.gameInfo1.getMediumResult().getTarget());
+					mrap.AliveSeerCOAgent.remove(mrap.gameInfo1.getMediumResult().getTarget());
+					mrap.fakeSeerCOAgent.add(mrap.gameInfo1.getMediumResult().getTarget());
+					mrap.AlivefakeSeerCOAgent.add(mrap.gameInfo1.getMediumResult().getTarget());
+					if(mrap.SeerCOAgent.size() + mrap.fakeSeerCOAgent.size() == 1){
 						mrap.DetectWP++;}
 				}
 				else{
 					mrap.DetectWP++;
 				}
 				for(i = 0;i <= 5; i++){
-						mrap.MyThinkJob[mrap.gameInfo1.getDivineResult().getTarget().getAgentIdx()][i] = 0;}
-				mrap.MyThinkJob[mrap.gameInfo1.getDivineResult().getTarget().getAgentIdx()][4] = 1.0;
+						mrap.MyThinkJob[mrap.gameInfo1.getMediumResult().getTarget().getAgentIdx()][i] = 0;}
+				mrap.MyThinkJob[mrap.gameInfo1.getMediumResult().getTarget().getAgentIdx()][4] = 1.0;
 				mrap.WEREWOLFDetectNum++;}
-			mrap.ChangeJob(mrap.gameInfo1.getDivineResult().getTarget().getAgentIdx(),100,100,100,100);
+			mrap.ChangeJob(mrap.gameInfo1.getMediumResult().getTarget().getAgentIdx(),100,100,100,100);
+			if(mrap.judgeAgentList.size() > 0){
+				int JH, JG;
+				for(JH = 0; JH < mrap.SeerCOAgent.size(); JH++){
+					for(JG = 0; JG < mrap.div.get(mrap.SeerCOAgent.get(JH)).size(); JG++){
+				if(mrap.div.get(mrap.SeerCOAgent.get(JH)).get(JG).getTarget() == mrap.gameInfo1.getMediumResult().getTarget()){
+				if(mrap.gameInfo1.getMediumResult().getResult() != mrap.div.get(mrap.SeerCOAgent.get(JH)).get(JG).getResult()){//自分の霊能と占い結果が違ったら
+					Agent agtx = mrap.SeerCOAgent.get(JH);
+					mrap.MyThinkJob[mrap.SeerCOAgent.get(JH).getAgentIdx()][1] = 0;
+					mrap.CleanJob(mrap.SeerCOAgent.get(JH).getAgentIdx());
+					mrap.ChangeJob(mrap.SeerCOAgent.get(JH).getAgentIdx(),100,100,100,100);
+					mrap.BlackAgent.add(mrap.SeerCOAgent.get(JH));
+					mrap.SeerCOAgent.remove(mrap.SeerCOAgent.get(JH));
+					mrap.AliveSeerCOAgent.remove(agtx);
+					mrap.fakeSeerCOAgent.add(agtx);
+					mrap.AlivefakeSeerCOAgent.add(agtx);
+					System.out.printf("結果違う%d\n",agtx.getAgentIdx());
+					break;
+					}//占い師の発言が違っていたら占い師の値を下げる
+				else if(mrap.gameInfo1.getMediumResult().getResult() == mrap.div.get(mrap.SeerCOAgent.get(JH)).get(JG).getResult()){//自分の霊能と結果が同じであれば
+					mrap.UJP(mrap.SeerCOAgent.get(JH).getAgentIdx(),Role.SEER,mrap.TWI);
+					mrap.ChangeJob(mrap.SeerCOAgent.get(JH).getAgentIdx(),100,100,100,100);
+					System.out.printf("結果同じ%d\n", mrap.SeerCOAgent.get(JH).getAgentIdx());
+					}//占い師の結果が霊能結果と同じなら霊能者の占い師の値を上げる
 			
+				}
+				
+					}
+				}
+			}
 		}
 			
 		}
@@ -533,121 +466,96 @@ public class MySeer extends AbstractSeer {
 	}
 	
 
-	public void MEDIUMCO1(){
-		for(int M1 = 0; M1 < mrap.MEDIUMCOAgent.size();M1++){
-			for(int M2 = 0; M2 < mrap.MEDIUMCOAgent.size();M2++){
-				if(M1 != M2){
-					mrap.HaveTrust[mrap.MEDIUMCOAgent.get(M1).getAgentIdx()][mrap.MEDIUMCOAgent.get(M2).getAgentIdx()] = 0.0;
-				}}
-			for(int M2 = 0; M2 < mrap.fakeMEDIUMAgent.size();M2++){
-				mrap.HaveTrust[mrap.MEDIUMCOAgent.get(M1).getAgentIdx()][mrap.fakeMEDIUMAgent.get(M2).getAgentIdx()] = 0.0;
-			}
-			}
-		for(int M1 = 0; M1 < mrap.fakeMEDIUMAgent.size();M1++){
-			for(int M2 = 0; M2 < mrap.fakeMEDIUMAgent.size();M2++){
-				if(M1 != M2){
-					mrap.HaveTrust[mrap.fakeMEDIUMAgent.get(M1).getAgentIdx()][mrap.fakeMEDIUMAgent.get(M2).getAgentIdx()] = 0.0;
-				}}
-			for(int M2 = 0; M2 < mrap.MEDIUMCOAgent.size();M2++){
-				mrap.HaveTrust[mrap.fakeMEDIUMAgent.get(M1).getAgentIdx()][mrap.MEDIUMCOAgent.get(M2).getAgentIdx()] = 0.0;
-			}
-			}
-	}
 	
-	void MySeerUPD(Talk talk, Utterance utterance){
-		int INQTF;//霊能結果が合致してたかどうかの確認
+	
+	void MyMEDIUMUPD(Talk talk, Utterance utterance){
+		int DIVTF;//占い結果が合致していたかどうかの確認
 		int TAN;
 		if(!talk.getAgent().equals(getMe())){
 			switch (utterance.getTopic()){
 			case COMINGOUT:
 				TAN = utterance.getTarget().getAgentIdx(); //TalkAgentNum
-				if(utterance.getRole() == Role.SEER && !mrap.fakeSeerCOAgent.contains(talk.getAgent())){
+				if(utterance.getRole() == Role.SEER && !mrap.fakeSeerCOAgent.contains(talk.getAgent()) && !mrap.SeerCOAgent.contains(talk.getAgent())){
 					if(mrap.div.get(utterance.getTarget()) == null){
 						mrap.div.put(utterance.getTarget(), new ArrayList<Utterance>());
 					}
 					RestartUPD(TAN, Role.SEER);
 					if(mrap.FirstSeerCODay == 100){
 						mrap.FirstSeerCODay = mrap.nowday;}
-					mrap.fakeSeerCOAgent.add(utterance.getTarget());
-					mrap.AlivefakeSeerCOAgent.add(utterance.getTarget());
+					mrap.SeerCOAgent.add(utterance.getTarget());
+					mrap.AliveSeerCOAgent.add(utterance.getTarget());
 					if(mrap.COAgent.contains(utterance.getTarget())){//すでに他でCOしている人物がCOしてきたら，人外度を上昇させる
 						mrap.UJP(TAN,Role.POSSESSED,0.4);
 						mrap.UJP(TAN,Role.WEREWOLF,0.4);
 					}
 					else{//他でCOしてなくてまだリストがなければ作成
 					mrap.COAgent.add(utterance.getTarget());}
+					
 					if(mrap.div.get(utterance.getTarget()) == null){
 						mrap.div.put(utterance.getTarget(), new ArrayList<Utterance>());
 					}
-					if(mrap.fakeSeerCOAgent.size() == 1){//占いCO一人目なら
-						mrap.DetectWP++;
-						mrap.HaveTrust[talk.getAgent().getAgentIdx()][getMe().getAgentIdx()] = 0.0;
+					if((mrap.SeerCOAgent.size()  + mrap.fakeSeerCOAgent.size()) == 1){//占いCO一人目なら
 						mrap.PCJ(TAN,Role.VILLAGER,0.0);
-						mrap.PCJ(TAN,Role.SEER,0.0);
 						mrap.PCJ(TAN,Role.MEDIUM,0.0);
 						mrap.PCJ(TAN,Role.BODYGUARD,0.0);
 					mrap.CleanJob(TAN);
 					mrap.ChangeJob(TAN,100,100,100,100);}
-					else if(mrap.fakeSeerCOAgent.size() == 2){
+					else if((mrap.SeerCOAgent.size()  + mrap.fakeSeerCOAgent.size()) == 2){
 						mrap.DetectWP++;
-						mrap.HaveTrust[talk.getAgent().getAgentIdx()][getMe().getAgentIdx()] = 0.0;
-						for(int M1 = 0; M1 < mrap.fakeSeerCOAgent.size();M1++){
-							for(int M2 = 0; M2 < mrap.fakeSeerCOAgent.size();M2++){
+						for(int M1 = 0; M1 < mrap.SeerCOAgent.size();M1++){
+							for(int M2 = 0; M2 < mrap.SeerCOAgent.size();M2++){
 								if(M1 != M2){
-									mrap.HaveTrust[mrap.fakeSeerCOAgent.get(M1).getAgentIdx()][mrap.fakeSeerCOAgent.get(M2).getAgentIdx()] = 0.0;
+									mrap.HaveTrust[mrap.SeerCOAgent.get(M1).getAgentIdx()][mrap.SeerCOAgent.get(M2).getAgentIdx()] = 0.0;
 								}}}
 						mrap.PCJ(TAN,Role.VILLAGER,0.0);
-						mrap.PCJ(TAN,Role.SEER,0.0);
+						mrap.PCJ(TAN,Role.MEDIUM,0.0);
+						mrap.PCJ(TAN,Role.BODYGUARD,0.0);
+						mrap.CleanJob(TAN);
+						mrap.ChangeJob(TAN,mrap.SeerCOAgent.get(0).getAgentIdx(),100,100,100);}
+					else if((mrap.SeerCOAgent.size()  + mrap.fakeSeerCOAgent.size()) == 3){
+						mrap.DetectWP++;
+						for(int M1 = 0; M1 < mrap.SeerCOAgent.size();M1++){
+							for(int M2 = 0; M2 < mrap.SeerCOAgent.size();M2++){
+								if(M1 != M2){
+									mrap.HaveTrust[mrap.SeerCOAgent.get(M1).getAgentIdx()][mrap.SeerCOAgent.get(M2).getAgentIdx()] = 0.0;
+								}}}
+						mrap.PCJ(TAN,Role.VILLAGER,0.0);
 						mrap.PCJ(TAN,Role.MEDIUM,0.0);
 						mrap.PCJ(TAN,Role.BODYGUARD,0.0);
 					mrap.CleanJob(TAN);
-						mrap.ChangeJob(TAN,mrap.fakeSeerCOAgent.get(0).getAgentIdx(),100,100,100);}
-					else if(mrap.fakeSeerCOAgent.size() == 3){
+						mrap.ChangeJob(TAN,mrap.SeerCOAgent.get(0).getAgentIdx(),mrap.SeerCOAgent.get(1).getAgentIdx(),100,100);}
+					else if((mrap.SeerCOAgent.size()  + mrap.fakeSeerCOAgent.size()) == 4){
 						mrap.DetectWP++;
-						mrap.HaveTrust[talk.getAgent().getAgentIdx()][getMe().getAgentIdx()] = 0.0;
-						for(int M1 = 0; M1 < mrap.fakeSeerCOAgent.size();M1++){
-							for(int M2 = 0; M2 < mrap.fakeSeerCOAgent.size();M2++){
+						for(int M1 = 0; M1 < mrap.SeerCOAgent.size();M1++){
+							for(int M2 = 0; M2 < mrap.SeerCOAgent.size();M2++){
 								if(M1 != M2){
-									mrap.HaveTrust[mrap.fakeSeerCOAgent.get(M1).getAgentIdx()][mrap.fakeSeerCOAgent.get(M2).getAgentIdx()] = 0.0;
+									mrap.HaveTrust[mrap.SeerCOAgent.get(M1).getAgentIdx()][mrap.SeerCOAgent.get(M2).getAgentIdx()] = 0.0;
 								}}}
 						mrap.PCJ(TAN,Role.VILLAGER,0.0);
-						mrap.PCJ(TAN,Role.SEER,0.0);
 						mrap.PCJ(TAN,Role.MEDIUM,0.0);
 						mrap.PCJ(TAN,Role.BODYGUARD,0.0);
 					mrap.CleanJob(TAN);
-						mrap.ChangeJob(TAN,mrap.fakeSeerCOAgent.get(0).getAgentIdx(),mrap.fakeSeerCOAgent.get(1).getAgentIdx(),100,100);}
-					else if(mrap.fakeSeerCOAgent.size() == 4){
-						mrap.DetectWP++;
-						mrap.HaveTrust[talk.getAgent().getAgentIdx()][getMe().getAgentIdx()] = 0.0;
-						for(int M1 = 0; M1 < mrap.fakeSeerCOAgent.size();M1++){
-							for(int M2 = 0; M2 < mrap.fakeSeerCOAgent.size();M2++){
-								if(M1 != M2){
-									mrap.HaveTrust[mrap.fakeSeerCOAgent.get(M1).getAgentIdx()][mrap.fakeSeerCOAgent.get(M2).getAgentIdx()] = 0.0;
-								}}}
-						mrap.PCJ(TAN,Role.VILLAGER,0.0);
-						mrap.PCJ(TAN,Role.SEER,0.0);
-						mrap.PCJ(TAN,Role.MEDIUM,0.0);
-						mrap.PCJ(TAN,Role.BODYGUARD,0.0);
-					mrap.CleanJob(TAN);
-						mrap.ChangeJob(TAN,mrap.fakeSeerCOAgent.get(0).getAgentIdx(),mrap.fakeSeerCOAgent.get(1).getAgentIdx(),mrap.fakeSeerCOAgent.get(2).getAgentIdx(),100);}
-					if(mrap.WEREWOLFAgent.contains(talk.getAgent())){
-						mrap.DetectWP--;//先に占って狼だとわかっていたら値をマイナス１して調整
-					}
-					if(mrap.fakeSeerCOAgent.size() >= 1){
+						mrap.ChangeJob(TAN,mrap.SeerCOAgent.get(0).getAgentIdx(),mrap.SeerCOAgent.get(1).getAgentIdx(),mrap.SeerCOAgent.get(2).getAgentIdx(),100);}
+					if((mrap.SeerCOAgent.size()  + mrap.fakeSeerCOAgent.size()) >= 2){
 						int MC, MD;
 						for(MC = 1; MC <= mrap.MaxNum; MC++){
-							mrap.DetectWPO[MC]++;//二人以上占い師（自分含める）がいれば一人以外は偽物だと全員がわかる
-							if(mrap.fakeSeerCOAgent.contains(Agent.getAgent(MC))){//占い師で
-								for(MD = 0;MD < mrap.div.get(Agent.getAgent(MC)).size();MD++){
+							mrap.DetectWPO[MC]++;//二人以上占い師がいれば一人以外は偽物だと全員がわかる
+							if(mrap.SeerCOAgent.contains(Agent.getAgent(MC))){//占い師で
+								for(MD = 0;MD < mrap.div.get(Agent.getAgent(MC)).size();MD++){//すでに占っている
 									if(mrap.div.get(Agent.getAgent(MC)).get(MD).getTarget() == utterance.getTarget() && mrap.div.get(Agent.getAgent(MC)).get(MD).getResult() == Species.WEREWOLF){
 							mrap.DetectWPO[MC]--;//占い師が先に占っていて狼だったらマイナス１して調整
 									}}}
-							
+							if(mrap.fakeSeerCOAgent.contains(Agent.getAgent(MC))){//占い師で
+								for(MD = 0;MD < mrap.div.get(Agent.getAgent(MC)).size();MD++){//すでに占っている
+									if(mrap.div.get(Agent.getAgent(MC)).get(MD).getTarget() == utterance.getTarget() && mrap.div.get(Agent.getAgent(MC)).get(MD).getResult() == Species.WEREWOLF){
+							mrap.DetectWPO[MC]--;//占い師が先に占っていて狼だったらマイナス１して調整
+									}}}
 							}
 						
 					}
-				}//偽占い師が出たらその職業値を人狼と狂人以外０にする
-				if(utterance.getRole() == Role.MEDIUM && !mrap.MEDIUMCOAgent.contains(talk.getAgent()) && !mrap.fakeMEDIUMAgent.contains(talk.getAgent())){
+					
+				}//占い師が出たらその職業値を人狼と狂人，占い師以外０にする
+				if(utterance.getRole() == Role.MEDIUM && !mrap.fakeMEDIUMAgent.contains(talk.getAgent())){
 					if(mrap.inq.get(utterance.getTarget()) == null){
 						mrap.inq.put(utterance.getTarget(), new ArrayList<Utterance>());
 					}
@@ -663,62 +571,76 @@ public class MySeer extends AbstractSeer {
 					if(mrap.inq.get(utterance.getTarget()) == null){
 						mrap.inq.put(utterance.getTarget(), new ArrayList<Utterance>());
 					}
+						mrap.fakeMEDIUMAgent.add(talk.getAgent());
+						mrap.AlivefakeMEDIUMAgent.add(talk.getAgent());
 					
-					
-					mrap.MEDIUMCOAgent.add(utterance.getTarget());
-					mrap.AliveMEDIUMCOAgent.add(utterance.getTarget());
-					if(mrap.WEREWOLFAgent.contains(talk.getAgent())){//霊能COの前に人狼だと分かっていたら
-						mrap.MEDIUMCOAgent.remove(utterance.getTarget());
-						mrap.AliveMEDIUMCOAgent.remove(utterance.getTarget());
-						mrap.fakeMEDIUMAgent.add(utterance.getTarget());
-						mrap.AlivefakeMEDIUMAgent.add(utterance.getTarget());
-						mrap.PCJ(TAN,Role.MEDIUM,0.0);}
-				if(mrap.MEDIUMCOAgent.size() + mrap.fakeMEDIUMAgent.size() == 1){//霊能CO一人目なら
+				if(mrap.fakeMEDIUMAgent.size() == 1){//霊能CO一人目なら
+					mrap.DetectWP++;
+					mrap.HaveTrust[talk.getAgent().getAgentIdx()][getMe().getAgentIdx()] = 0.0;
 					mrap.PCJ(TAN,Role.VILLAGER,0.0);
 					mrap.PCJ(TAN,Role.SEER,0.0);
+					mrap.PCJ(TAN,Role.MEDIUM,0.0);
 					mrap.PCJ(TAN,Role.BODYGUARD,0.0);
 					mrap.CleanJob(TAN);
 					mrap.ChangeJob(TAN,100,100,100,100);}
-				else if(mrap.MEDIUMCOAgent.size() + mrap.fakeMEDIUMAgent.size() == 2){//霊能CO二人目なら
+				else if(mrap.fakeMEDIUMAgent.size() == 2){//霊能CO二人目なら
 					mrap.DetectWP++;
-					MEDIUMCO1();
+					mrap.HaveTrust[talk.getAgent().getAgentIdx()][getMe().getAgentIdx()] = 0.0;
+					for(int M1 = 0; M1 < mrap.fakeMEDIUMAgent.size();M1++){
+						for(int M2 = 0; M2 < mrap.fakeMEDIUMAgent.size();M2++){
+							if(M1 != M2){
+								mrap.HaveTrust[mrap.fakeMEDIUMAgent.get(M1).getAgentIdx()][mrap.fakeMEDIUMAgent.get(M2).getAgentIdx()] = 1.0;
+							}}}
 					mrap.PCJ(TAN,Role.VILLAGER,0.0);
 					mrap.PCJ(TAN,Role.SEER,0.0);
+					mrap.PCJ(TAN,Role.MEDIUM,0.0);
 					mrap.PCJ(TAN,Role.BODYGUARD,0.0);
 					mrap.CleanJob(TAN);
-					mrap.ChangeJob(TAN,mrap.MEDIUMCOAgent.get(0).getAgentIdx(),100,100,100);}
-				else if(mrap.MEDIUMCOAgent.size() + mrap.fakeMEDIUMAgent.size() == 3){//霊能CO三人目なら
+					mrap.ChangeJob(TAN,mrap.fakeMEDIUMAgent.get(0).getAgentIdx(),100,100,100);}
+				else if(mrap.fakeMEDIUMAgent.size() == 3){//霊能CO三人目なら
 					mrap.DetectWP++;
-					MEDIUMCO1();
+					mrap.HaveTrust[talk.getAgent().getAgentIdx()][getMe().getAgentIdx()] = 0.0;
+					for(int M1 = 0; M1 < mrap.fakeMEDIUMAgent.size();M1++){
+						for(int M2 = 0; M2 < mrap.fakeMEDIUMAgent.size();M2++){
+							if(M1 != M2){
+								mrap.HaveTrust[mrap.fakeMEDIUMAgent.get(M1).getAgentIdx()][mrap.fakeMEDIUMAgent.get(M2).getAgentIdx()] = 1.0;
+							}}}
 					mrap.PCJ(TAN,Role.VILLAGER,0.0);
 					mrap.PCJ(TAN,Role.SEER,0.0);
+					mrap.PCJ(TAN,Role.MEDIUM,0.0);
 					mrap.PCJ(TAN,Role.BODYGUARD,0.0);
 					mrap.CleanJob(TAN);
-					mrap.ChangeJob(TAN,mrap.MEDIUMCOAgent.get(0).getAgentIdx(),mrap.MEDIUMCOAgent.get(1).getAgentIdx(),100,100);}
-				else if(mrap.MEDIUMCOAgent.size() + mrap.fakeMEDIUMAgent.size() == 4){//霊能CO４人目なら
+					mrap.ChangeJob(TAN,mrap.fakeMEDIUMAgent.get(0).getAgentIdx(),mrap.fakeMEDIUMAgent.get(1).getAgentIdx(),100,100);}
+				else if(mrap.fakeMEDIUMAgent.size() == 4){//霊能CO４人目なら
 					mrap.DetectWP++;
-					MEDIUMCO1();
+					mrap.HaveTrust[talk.getAgent().getAgentIdx()][getMe().getAgentIdx()] = 0.0;
+					for(int M1 = 0; M1 < mrap.fakeMEDIUMAgent.size();M1++){
+						for(int M2 = 0; M2 < mrap.fakeMEDIUMAgent.size();M2++){
+							if(M1 != M2){
+								mrap.HaveTrust[mrap.fakeMEDIUMAgent.get(M1).getAgentIdx()][mrap.fakeMEDIUMAgent.get(M2).getAgentIdx()] = 1.0;
+							}}}
 					mrap.PCJ(TAN,Role.VILLAGER,0.0);
 					mrap.PCJ(TAN,Role.SEER,0.0);
+					mrap.PCJ(TAN,Role.MEDIUM,0.0);
 					mrap.PCJ(TAN,Role.BODYGUARD,0.0);
 					mrap.CleanJob(TAN);
-					mrap.ChangeJob(TAN,mrap.MEDIUMCOAgent.get(0).getAgentIdx(),mrap.MEDIUMCOAgent.get(1).getAgentIdx(),100,100);}
-					
-					if(mrap.MEDIUMCOAgent.size() + mrap.fakeMEDIUMAgent.size() >= 2){
-						int MC, MD;
-						for(MC = 1; MC <= mrap.MaxNum; MC++){
-							mrap.DetectWPO[MC]++;//二人以上霊能者がいれば一人以外は偽物だと全員がわかる
-							if(mrap.fakeSeerCOAgent.contains(Agent.getAgent(MC))){//占い師で
-								for(MD = 0;MD < mrap.div.get(Agent.getAgent(MC)).size();MD++){
-									if(mrap.div.get(Agent.getAgent(MC)).get(MD).getTarget() == utterance.getTarget() && mrap.div.get(Agent.getAgent(MC)).get(MD).getResult() == Species.WEREWOLF){
-							mrap.DetectWPO[MC]--;//占い師が先に占っていて狼だったらマイナス１して調整
-									}}}
-							
-							}
+					mrap.ChangeJob(TAN,mrap.fakeMEDIUMAgent.get(0).getAgentIdx(),mrap.fakeMEDIUMAgent.get(1).getAgentIdx(),100,100);}
+				
+				if(mrap.fakeMEDIUMAgent.size() >= 1){
+					int MC, MD;
+					for(MC = 1; MC <= mrap.MaxNum; MC++){
+						mrap.DetectWPO[MC]++;//二人以上霊能者（自分含む）がいれば一人以外は偽物だと全員がわかる
+						if(mrap.fakeSeerCOAgent.contains(Agent.getAgent(MC))){//占い師で
+							for(MD = 0;MD < mrap.div.get(Agent.getAgent(MC)).size();MD++){
+								if(mrap.div.get(Agent.getAgent(MC)).get(MD).getTarget() == utterance.getTarget() && mrap.div.get(Agent.getAgent(MC)).get(MD).getResult() == Species.WEREWOLF){
+						mrap.DetectWPO[MC]--;//占い師が先に占っていて狼だったらマイナス１して調整
+								}}}
 						
-					}
+						}
 					
 				}
+				
+					}
 				if(utterance.getRole() == Role.BODYGUARD && !mrap.BODYGUARDCOAgent.contains(talk.getAgent())){
 					if(mrap.COAgent.contains(utterance.getTarget())){//すでに他でCOしている人物がCOしてきたら，人外度を上昇させる
 						mrap.UJP(TAN,Role.POSSESSED,0.4);
@@ -737,7 +659,7 @@ public class MySeer extends AbstractSeer {
 						for(int M1 = 0; M1 < mrap.BODYGUARDCOAgent.size();M1++){
 							for(int M2 = 0; M2 < mrap.BODYGUARDCOAgent.size();M2++){
 								if(M1 != M2){
-									mrap.HaveTrust[mrap.BODYGUARDCOAgent.get(M1).getAgentIdx()][mrap.BODYGUARDCOAgent.get(M2).getAgentIdx()] = 0.0;
+									mrap.HaveTrust[mrap.BODYGUARDCOAgent.get(M1).getAgentIdx()][mrap.BODYGUARDCOAgent.get(M2).getAgentIdx()] = 1.0;
 								}}}
 						mrap.PCJ(TAN,Role.VILLAGER,0.0);
 						mrap.PCJ(TAN,Role.SEER,0.0);
@@ -754,11 +676,17 @@ public class MySeer extends AbstractSeer {
 				}
 				break;
 			case DIVINED:
-				if(!mrap.fakeSeerCOAgent.contains(talk.getAgent())){//まだCOしてないのに占い結果報告なんてしてきたら
+				if(!mrap.fakeSeerCOAgent.contains(talk.getAgent()) && !mrap.SeerCOAgent.contains(talk.getAgent())){//まだCOしてないのに占い結果報告なんてしてきたら
 					mrap.UJP(talk.getAgent().getAgentIdx(),Role.POSSESSED,0.1);
 					mrap.UJP(talk.getAgent().getAgentIdx(),Role.WEREWOLF,0.1);
 				}//人外の値上昇
-				mrap.adddiv(talk.getAgent(), utterance);
+				DIVTF = mrap.MEDIadddiv(talk.getAgent(), utterance);
+				if(DIVTF == 1 && !mrap.fakeSeerCOAgent.contains(talk.getAgent()) && mrap.SeerCOAgent.contains(talk.getAgent())){//まだ偽だと分かっていない人の霊能結果が食い違っていた場合
+					mrap.BlackAgent.add(talk.getAgent());
+					mrap.SeerCOAgent.remove(talk.getAgent());
+					mrap.AliveSeerCOAgent.remove(talk.getAgent());
+					mrap.fakeSeerCOAgent.add(talk.getAgent());
+					mrap.AlivefakeSeerCOAgent.add(talk.getAgent());}
 				RestartUPD(talk.getAgent().getAgentIdx(), Role.SEER);
 				break;
 			case INQUESTED://霊能結果報告
@@ -767,17 +695,7 @@ public class MySeer extends AbstractSeer {
 					mrap.UJP(talk.getAgent().getAgentIdx(),Role.WEREWOLF,0.1);
 				}//人外の値上昇
 				TAN = utterance.getTarget().getAgentIdx(); 
-				INQTF = mrap.Seeraddinq(talk.getAgent(),utterance);
-				if(INQTF == 1 && !mrap.fakeMEDIUMAgent.contains(talk.getAgent()) && mrap.MEDIUMCOAgent.contains(talk.getAgent())){//まだ偽だと分かっていない人の霊能結果が食い違っていた場合
-					mrap.BlackAgent.add(talk.getAgent());
-					mrap.MEDIUMCOAgent.remove(talk.getAgent());
-					mrap.AliveMEDIUMCOAgent.remove(talk.getAgent());
-					mrap.fakeMEDIUMAgent.add(talk.getAgent());
-					mrap.AlivefakeMEDIUMAgent.add(talk.getAgent());
-					if(mrap.MEDIUMCOAgent.size() == 0){
-					mrap.DetectWP++;	
-					}
-					}
+				mrap.addinq(talk.getAgent(),utterance);
 				RestartUPD(talk.getAgent().getAgentIdx(), Role.MEDIUM);
 				break;
 				
@@ -811,17 +729,6 @@ public class MySeer extends AbstractSeer {
 				if(utterance.getTarget() == getMe() && mrap.isComingOut == true){//カミングアウトした自分に投票する相手の人外値を上昇
 					mrap.UJP(talk.getAgent().getAgentIdx(),Role.WEREWOLF,mrap.TWV);
 					mrap.UJP(talk.getAgent().getAgentIdx(),Role.POSSESSED,mrap.TWV);}
-				else if(mrap.judgeAgentList.contains(utterance.getTarget()) && mrap.isComingOut == true){//投票が自分の占い先でかつ、自分が白を出していた時に
-					if(mrap.judgeList.get(mrap.judgeAgentList.indexOf(utterance.getTarget())).getResult() == Species.HUMAN){
-						mrap.CHT(talk.getAgent().getAgentIdx(),getMe().getAgentIdx(),-mrap.TWV);
-						mrap.UJP(talk.getAgent().getAgentIdx(),Role.WEREWOLF,0.2);
-						mrap.UJP(talk.getAgent().getAgentIdx(),Role.POSSESSED,0.2);
-					}
-					if(mrap.judgeList.get(mrap.judgeAgentList.indexOf(utterance.getTarget())).getResult() == Species.WEREWOLF){//投票が自分の占い先でかつ、自分が黒をだしている
-						mrap.CHT(talk.getAgent().getAgentIdx(),getMe().getAgentIdx(),mrap.TWV);
-						mrap.DJP(talk.getAgent().getAgentIdx(),Role.WEREWOLF,0.1);
-						mrap.DJP(talk.getAgent().getAgentIdx(),Role.POSSESSED,0.1);
-					}}//他の占い師などの事はその占い師の場所で処理
 				
 				
 				break;
@@ -831,7 +738,7 @@ public class MySeer extends AbstractSeer {
 				break;
 			case DISAGREE:
 				mrap.DayTalkNum[mrap.nowday][talk.getAgent().getAgentIdx()]++;
-				mrap.CHT(talk.getAgent().getAgentIdx(),utterance.getTarget().getAgentIdx(),mrap.TWDA);
+				mrap.CHT(talk.getAgent().getAgentIdx(),utterance.getTarget().getAgentIdx(),-mrap.TWDA);
 				break;
 			case SKIP:
 				mrap.DJP(talk.getAgent().getAgentIdx(), Role.VILLAGER, 0.05);
@@ -840,7 +747,6 @@ public class MySeer extends AbstractSeer {
 					break;
 			}}
 	}
-	
 	
 	void RestartUPD(int Rn, Role rerole){//他のエージェントが役職持ちだと分かった時に役職持ちの状態でその日の最初から
 		int RS;
@@ -866,6 +772,9 @@ public class MySeer extends AbstractSeer {
 		switch(rerole){
 		case SEER:
 			mrap.HaveTrust[Rn][getMe().getAgentIdx()] = 0;
+		for(RS = 0; RS < mrap.SeerCOAgent.size(); RS++){
+			mrap.HaveTrust[Rn][mrap.SeerCOAgent.get(RS).getAgentIdx()] = 0;
+		}
 		for(RS = 0; RS < mrap.fakeSeerCOAgent.size(); RS++){
 			mrap.HaveTrust[Rn][mrap.fakeSeerCOAgent.get(RS).getAgentIdx()] = 0;
 		}
@@ -874,9 +783,9 @@ public class MySeer extends AbstractSeer {
 			for(RS = 0; RS < mrap.fakeMEDIUMAgent.size(); RS++){
 				mrap.HaveTrust[Rn][mrap.fakeMEDIUMAgent.get(RS).getAgentIdx()] = 0;
 			}	
-			for(RS = 0; RS < mrap.MEDIUMCOAgent.size(); RS++){
-				mrap.HaveTrust[Rn][mrap.MEDIUMCOAgent.get(RS).getAgentIdx()] = 0;
-			}
+			default:
+				break;
+				
 		}
 	}
 	
@@ -890,18 +799,18 @@ public class MySeer extends AbstractSeer {
 	public void update(GameInfo gameInfo) {//
 		super.update(gameInfo);
 		mrap.gameInfo1 = gameInfo;
-		mrap.MediNum = 0;
-		mrap.MeDetectWP = mrap.DetectWP;//発見した数を自分で見つけた数に初期化
+		mrap.SeerNum = 0;
+		mrap.SeDetectWP = mrap.DetectWP;//発見した数を自分で見つけた数に初期化
 		List<Talk> talkList = gameInfo.getTalkList();//今日の会話を記録する
 		//System.out.printf("alltalksize%d\n",Allmrap.daytalkList.size());
 		//List<Judge> judge1 = new ArrayList<Judge>();
-		//Judge judge2 = mrap.gameInfo1.getDivineResult();
+		//Judge judge2 = mrap.gameInfo1.getMediumResult();
 		//PP = 1;
 		
 
 		for(i=0;i < 16;i++){
 			for(k= 0;k < 6;k++){
-				mrap.ThinkMEDIUMJob[i][k] = mrap.MyThinkJob[i][k]; 
+				mrap.ThinkSEERJob[i][k] = mrap.MyThinkJob[i][k]; 
 			}}
 		//System.out.println("�肢����" + judge1.get(mrap.nowday).getDay()+"���" + judge1.get(mrap.nowday).getAgent() + judge1.get(mrap.nowday).getResult());
 		for(int i = mrap.readTalkNum; i< talkList.size(); i++){
@@ -920,7 +829,9 @@ public class MySeer extends AbstractSeer {
 			}*/
 			
 			
-				MySeerUPD(talk,utterance);//最初に自分の処理を行う
+			
+				MyMEDIUMUPD(talk,utterance);//自分の処理を最初に行う
+				
 			
 			for(int M = 1; M < 16; M++){
 				if(getMe().getAgentIdx() != M){
@@ -941,36 +852,86 @@ public class MySeer extends AbstractSeer {
 			}
 			mrap.readTalkNum++;
 		}//ここまでトークの整理
-		if(mrap.myrole != Role.MEDIUM){
-		if(mrap.MEDIUMCOAgent.size() > 0){
-		for(i = 0; i < mrap.MEDIUMCOAgent.size(); i++){
-		if(mrap.BOM < mrap.MyThinkJob[mrap.MEDIUMCOAgent.get(i).getAgentIdx()][2]){//霊能者の信頼度が高ければ
-			MeUp(mrap.MEDIUMCOAgent.get(i));
-			mrap.MediNum = mrap.MEDIUMCOAgent.get(i).getAgentIdx();
+		if(mrap.myrole != Role.SEER){
+		if(mrap.SeerCOAgent.size() > 0){
+		for(i = 0; i < mrap.SeerCOAgent.size(); i++){
+		if(mrap.BOS < mrap.MyThinkJob[mrap.SeerCOAgent.get(i).getAgentIdx()][1]){//占い師の信頼度が高ければ
+			SeUp(mrap.SeerCOAgent.get(i));
+			mrap.SeerNum = mrap.SeerCOAgent.get(i).getAgentIdx();
 		}
 		}}
 		}
+		
 	} //update 
-	
-	
+	int rp;//roopNum
 	@Override
 	public String talk() {
 		String voteTalk;
 		if(!mrap.isComingOut){
 			for(Judge judge: getMyJudgeList()){
-				if(judge.getResult() == Species.WEREWOLF || mrap.fakeSeerCOAgent.size() > 0 || mrap.nowday >= mrap.RAN){
+				if(judge.getResult() == Species.WEREWOLF){
 					String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
 					mrap.isComingOut = true;
 					return comingoutTalk;
 				}}
+			if((mrap.fakeMEDIUMAgent.size() > 0 || mrap.nowday >= mrap.RAN) && rp == 1 && mrap.SeerCOAgent.size() > 0){
+				return Talk.OVER;
+				}
+			else if((mrap.fakeMEDIUMAgent.size() > 0 || mrap.nowday >= mrap.RAN) && rp == 1 && mrap.SeerCOAgent.size() == 0){
+				String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
+				mrap.isComingOut = true;
+				return comingoutTalk;
+				}
+			else if((mrap.fakeMEDIUMAgent.size() > 0 || mrap.nowday >= mrap.RAN) && rp == 2 && mrap.SeerCOAgent.size() > 0){
+				for(i = 0;i < mrap.DIVWEREAgent.size(); i++){
+					if(!mrap.fakeMEDIUMAgent.contains(mrap.DIVWEREAgent.get(i)) && !mrap.SeerCOAgent.contains(mrap.DIVWEREAgent.get(i))){
+					for(k = 0; k < mrap.SeerCOAgent.size(); k++){
+						for(s = 0; s < mrap.div.get(mrap.SeerCOAgent.get(k) ).size(); s++){
+						if(mrap.div.get(mrap.SeerCOAgent.get(k) ).get(s).getResult() == Species.WEREWOLF &&  mrap.div.get(mrap.SeerCOAgent.get(k) ).get(s).getTarget() == mrap.DIVWEREAgent.get(i)){
+							return Talk.OVER;
+						}
+						}}
+						}
+				}//すでに占いCOがあり，そのうちの誰かが占い結果報告で占い師か霊能者以外に黒出している場合
+				String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
+				mrap.isComingOut = true;
+				return comingoutTalk;//占い師が出ても黒が出ていなければそのままCOすることとする．
+				
+				}
+			else if((mrap.fakeMEDIUMAgent.size() > 0 || mrap.nowday >= mrap.RAN) && rp >= 3){
+				String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
+			mrap.isComingOut = true;
+			return comingoutTalk;
+			}
+			
 		}
 		else{
 			for(Judge judge:getMyJudgeList()){
 				if(!mrap.myToldJudgeList.contains(judge)){
-					String resultTalk = TemplateTalkFactory.divined(judge.getTarget(), judge.getResult());
+					String resultTalk = TemplateTalkFactory.inquested(judge.getTarget(), judge.getResult());
 					mrap.myToldJudgeList.add(judge);
 					return resultTalk;
 				}}}
+		double TP = 0;
+		int TN = 1;
+		if(mrap.SeerNum != 0){
+		for(int TJ = 1; TJ <= mrap.MaxNum; TJ++){
+		if(TP < mrap.ThinkSEERJob[TJ][4] && mrap.gameInfo1.getAliveAgentList().contains(Agent.getAgent(TJ))){//生きている人間で占い師を用いて狼が見つかっていたら
+			TP = mrap.ThinkSEERJob[TJ][4];
+			TN = TJ;
+		}
+		
+		}}
+		int BS = 0;//０の時は誰も黒なし，１の時は誰かが黒を出した
+		int BN = 0;//黒を出された番号
+		for(i = 0;i < mrap.SeerCOAgent.size(); i++){
+			for(k = 0; k < mrap.div.get(mrap.SeerCOAgent.get(i)).size(); k++){
+				if(mrap.gameInfo1.getAliveAgentList().contains(mrap.div.get(mrap.SeerCOAgent.get(i) ) ) && mrap.div.get(mrap.SeerCOAgent.get(i) ).get(k).getResult() == Species.WEREWOLF && BS == 0){
+					BS = 1;
+					BN = mrap.div.get(mrap.SeerCOAgent.get(i)).get(k).getTarget().getAgentIdx();
+				}//真偽のわかっていない占い師が誰かに黒を出した時
+			}
+		}
 		if(mrap.AliveWEREWOLFAgent.size() > 0 && !mrap.isVote){//まだ生きている分かっている狼がいれば
 			System.out.printf("とりあえず狼にいれよう\n");
 			mrap.Voteagt = randomSelect(mrap.AliveWEREWOLFAgent);
@@ -978,65 +939,81 @@ public class MySeer extends AbstractSeer {
 			mrap.isVote = true;
 			return voteTalk;
 		}
+		else if(TP >= 1.0 && !mrap.isVote){//まだ生きている狼っぽい人物がいたら
+			System.out.printf("占い師決めうちで狼に入れよう\n");
+			mrap.Voteagt = Agent.getAgent(TN);
+			voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
+			mrap.isVote = true;
+			return voteTalk;
+		}
+		else if(BS == 1.0 && !mrap.isVote){//まだ生きている狼っぽい人物がいたら
+			System.out.printf("真偽の分からない占い師からの黒に入れて色を見よう\n");
+			mrap.Voteagt = Agent.getAgent(BN);
+			voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
+			mrap.isVote = true;
+			return voteTalk;
+		}
 		else if(mrap.DetectWP >= 4 && !mrap.isVote){//人外を４以上（普通なら４で止まる）見つけた時、ただ既に見つけた狼は処刑した状態なはず
 			System.out.printf("人外全露出じゃないですか？\n");
 			System.out.printf("%d:%s",mrap.DetectWP,mrap.isVote);
-			if(mrap.fakeMEDIUMAgent.size() >= 2 && mrap.AlivefakeMEDIUMAgent.size() > 0){//偽霊能に投票
+			if(mrap.MEDIUMCOAgent.size() >= 2 && mrap.AlivefakeMEDIUMAgent.size() > 0){//偽霊能に投票
 				mrap.isVote = true;
 				mrap.Voteagt = randomSelect(mrap.AlivefakeMEDIUMAgent);
 				voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
 				return voteTalk;}
-			else if(mrap.SeerCOAgent.size() + mrap.fakeSeerCOAgent.size() >= 2 && mrap.AliveSeerCOAgent.size() > 0){//占いグレーに投票
-				mrap.isVote = true;
-				mrap.Voteagt = randomSelect(mrap.AliveSeerCOAgent);
-				voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
-				return voteTalk;}
-			else if(mrap.SeerCOAgent.size() + mrap.fakeSeerCOAgent.size()  >= 2 && mrap.AlivefakeSeerCOAgent.size() > 0){//偽占い師に投票
+			else if(mrap.fakeSeerCOAgent.size() >= 2 && mrap.AlivefakeSeerCOAgent.size() > 0){//偽占い師に投票
 				mrap.Voteagt = randomSelect(mrap.AlivefakeSeerCOAgent);
 				mrap.isVote = true;
 				voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
 				return voteTalk;}
+			else if(mrap.SeerCOAgent.size() >= 2 && mrap.AliveSeerCOAgent.size() > 0){//占いグレーに投票
+				mrap.isVote = true;
+				mrap.Voteagt = randomSelect(mrap.AliveSeerCOAgent);
+				voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
+				return voteTalk;}
 			mrap.isVote = true;
 		}
-		else if(mrap.DetectWP <= 3 && !mrap.isVote && (mrap.MEDIUMCOAgent.size() + mrap.fakeMEDIUMAgent.size()) >= 2 && (mrap.AliveMEDIUMCOAgent.size() + mrap.AlivefakeMEDIUMAgent.size()) >= 1 && mrap.nowday >= 3){//霊ロラ始めまたは完遂
+		else if(mrap.DetectWP <= 3 && !mrap.isVote && mrap.fakeMEDIUMAgent.size() >= 1 && mrap.AlivefakeMEDIUMAgent.size() >= 1 && mrap.nowday >= 3){//霊ロラ始めまたは完遂
 			System.out.printf("霊ロラしようぜ\n");
 			if(mrap.AlivefakeMEDIUMAgent.size() > 0){
 				mrap.isVote = true;
 				mrap.Voteagt = randomSelect(mrap.AlivefakeMEDIUMAgent);
 				voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
 				return voteTalk;}
-			else if(mrap.AliveMEDIUMCOAgent.size() > 0){
-				mrap.Voteagt = randomSelect(mrap.AliveMEDIUMCOAgent);
-				mrap.isVote = true;
-				voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
-				return voteTalk;}
 		}
-		else if(mrap.DetectWP <= 3 && !mrap.isVote && (mrap.MEDIUMCOAgent.size() + mrap.fakeMEDIUMAgent.size()) >= 3 && (mrap.AliveMEDIUMCOAgent.size() + mrap.AlivefakeMEDIUMAgent.size()) >= 1 && mrap.nowday >= 2){//霊ロラ始めまたは完遂
-			System.out.printf("霊ロラしようぜ(霊3以上ver)\n");
+		else if(mrap.DetectWP <= 3 && !mrap.isVote && mrap.fakeMEDIUMAgent.size() >= 2 && mrap.AlivefakeMEDIUMAgent.size() >= 1 && mrap.nowday >= 2){//霊ロラ始めまたは完遂
+			System.out.printf("霊ロラしようぜ\n");
 			if(mrap.AlivefakeMEDIUMAgent.size() > 0){
 				mrap.isVote = true;
 				mrap.Voteagt = randomSelect(mrap.AlivefakeMEDIUMAgent);
 				voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
 				return voteTalk;}
-			else if(mrap.AliveMEDIUMCOAgent.size() > 0){
-				mrap.Voteagt = randomSelect(mrap.AliveMEDIUMCOAgent);
+		}
+		else if(mrap.DetectWP <= 3 && !mrap.isVote && (mrap.fakeSeerCOAgent.size() + mrap.SeerCOAgent.size()) >= 3 && (mrap.AlivefakeSeerCOAgent.size() + mrap.AliveSeerCOAgent.size()) > 1 && mrap.nowday >= 3){//占いロラ
+			System.out.printf("占いロラしようぜ\n");
+			if(mrap.AlivefakeSeerCOAgent.size() > 0){
+			mrap.isVote = true;
+			mrap.Voteagt = randomSelect(mrap.AlivefakeSeerCOAgent);
+			voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
+			return voteTalk;}
+			if(mrap.AliveSeerCOAgent.size() > 0){
 				mrap.isVote = true;
+				mrap.Voteagt = randomSelect(mrap.AliveSeerCOAgent);
 				voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
 				return voteTalk;}
 		}
-		else if(mrap.DetectWP <= 3 && !mrap.isVote && mrap.fakeSeerCOAgent.size() >= 2 && mrap.AlivefakeSeerCOAgent.size() > 1 && mrap.nowday >= 3){//占いロラ
+		else if(mrap.DetectWP <= 3 && !mrap.isVote && (mrap.fakeSeerCOAgent.size() + mrap.SeerCOAgent.size()) >= 4 && (mrap.AlivefakeSeerCOAgent.size() + mrap.AliveSeerCOAgent.size()) > 1 && mrap.nowday >= 2){//占いロラ
 			System.out.printf("占いロラしようぜ\n");
+			if(mrap.AlivefakeSeerCOAgent.size() > 0){
 			mrap.isVote = true;
 			mrap.Voteagt = randomSelect(mrap.AlivefakeSeerCOAgent);
 			voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
-			return voteTalk;
-		}
-		else if(mrap.DetectWP <= 3 && !mrap.isVote && mrap.fakeSeerCOAgent.size() >= 3 && mrap.AlivefakeSeerCOAgent.size() > 1 && mrap.nowday >= 2){//占いロラ
-			System.out.printf("占いロラしようぜ(占い4以上ver)\n");
-			mrap.isVote = true;
-			mrap.Voteagt = randomSelect(mrap.AlivefakeSeerCOAgent);
-			voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
-			return voteTalk;
+			return voteTalk;}
+			if(mrap.AliveSeerCOAgent.size() > 0){
+				mrap.isVote = true;
+				mrap.Voteagt = randomSelect(mrap.AliveSeerCOAgent);
+				voteTalk = TemplateTalkFactory.vote(mrap.Voteagt);
+				return voteTalk;}
 		}
 		
 		return Talk.OVER;
@@ -1046,15 +1023,15 @@ public class MySeer extends AbstractSeer {
 	public Agent vote() {
 		//List<Agent> voteCandidates = new ArrayList<Agent>();
 		double VoteJob[][] = new double[16][6];
-		if(mrap.MediNum == 0){//現在信頼できそうな霊能者がいればその結果を反映、
+		if(mrap.SeerNum == 0){//現在信頼できそうな占い師がいればその結果を反映、
 		for(i=0;i < 16;i++){
 			for(k= 0;k < 6;k++){
 				VoteJob[i][k] = mrap.MyThinkJob[i][k]; 
 			}}}
-		else if(mrap.MediNum != 0){
+		else if(mrap.SeerNum != 0){
 			for(i=0;i < 16;i++){
 				for(k= 0;k < 6;k++){
-					VoteJob[i][k] = mrap.ThinkMEDIUMJob[i][k]; 
+					VoteJob[i][k] = mrap.ThinkSEERJob[i][k]; 
 				}}}
 		double sumT[] = new double[16];
 		double sumX;
@@ -1084,13 +1061,17 @@ public class MySeer extends AbstractSeer {
 		}
 		output();
 		List<Agent> whiteAgent = new ArrayList<Agent>();
-		List<Agent> MEDIUMvoteAgent = new ArrayList<Agent>();
+		List<Agent> onewhiteAgent = new ArrayList<Agent>();
+		List<Agent> SeervoteAgent = new ArrayList<Agent>();
 		List<Agent> blackAgent = new ArrayList<Agent>();
+		List<Agent> oneblackAgent = new ArrayList<Agent>();
 		List<Agent> fakeSeerCOvoteAgent = new ArrayList<Agent>();
 		List<Agent> fakeMEDIUMvoteAgent = new ArrayList<Agent>();
 		List<Agent> whiteSeerAgent = new ArrayList<Agent>();
+		List<Agent> whitefakeSeerAgent = new ArrayList<Agent>();
 		List<Agent> whiteMEDIUMAgent = new ArrayList<Agent>();
-		for(Judge judge: getMyJudgeList()){
+		if(mrap.SeerNum >= 1){
+		for(Utterance judge: mrap.div.get(Agent.getAgent(mrap.SeerNum))){
 if(getLatestDayGameInfo().getAliveAgentList().contains(judge.getTarget())){
     if(mrap.fakeSeerCOAgent.contains(judge.getTarget())){   
 	switch (judge.getResult()){
@@ -1100,7 +1081,15 @@ if(getLatestDayGameInfo().getAliveAgentList().contains(judge.getTarget())){
         case WEREWOLF:
         	blackAgent.add(judge.getTarget());
         	break;}}
-    else if(mrap.MEDIUMCOAgent.contains(judge.getTarget())){
+    if(mrap.SeerCOAgent.contains(judge.getTarget())){   
+    	switch (judge.getResult()){
+            case HUMAN:
+            	whitefakeSeerAgent.add(judge.getTarget());
+            			break;
+            case WEREWOLF:
+            	blackAgent.add(judge.getTarget());
+            	break;}}
+    else if(mrap.fakeMEDIUMAgent.contains(judge.getTarget())){
     	switch (judge.getResult()){
         case HUMAN:
         	whiteMEDIUMAgent.add(judge.getTarget());
@@ -1119,25 +1108,26 @@ if(getLatestDayGameInfo().getAliveAgentList().contains(judge.getTarget())){
     }
 }
 
-		}
-		if(mrap.MEDIUMCOAgent.size() > 0){
-			for(int i = 0; i < mrap.MEDIUMCOAgent.size(); i++){
-			if(getLatestDayGameInfo().getAliveAgentList().contains(mrap.MEDIUMCOAgent.get(i)) && !blackAgent.contains(mrap.MEDIUMCOAgent.get(i)) && !whiteMEDIUMAgent.contains(mrap.MEDIUMCOAgent.get(i))){
-				MEDIUMvoteAgent.add(mrap.MEDIUMCOAgent.get(i));
-			}
-			}}
+		}}
+		
 		if(mrap.fakeMEDIUMAgent.size() > 0){
 			for(int i =0; i < mrap.fakeMEDIUMAgent.size(); i++){
 				if(getLatestDayGameInfo().getAliveAgentList().contains(mrap.fakeMEDIUMAgent.get(i)) && !blackAgent.contains(mrap.fakeMEDIUMAgent.get(i)) && !whiteMEDIUMAgent.contains(mrap.fakeMEDIUMAgent.get(i))){
 					fakeMEDIUMvoteAgent.add(mrap.fakeMEDIUMAgent.get(i));
 				}
 			}
-		}
+		}//偽霊能者が偽霊能白や狼に入っていなければ偽霊能に格納
+		if(mrap.SeerCOAgent.size() > 0){
+			for(int i = 0; i < mrap.SeerCOAgent.size(); i++){
+			if(getLatestDayGameInfo().getAliveAgentList().contains(mrap.SeerCOAgent.get(i)) && !blackAgent.contains(mrap.SeerCOAgent.get(i)) && !whiteSeerAgent.contains(mrap.SeerCOAgent.get(i))){
+				SeervoteAgent.add(mrap.SeerCOAgent.get(i));
+			}
+			}}//占い師が狼や占い白に入っていなければ占いグレーに格納
 		if(mrap.fakeSeerCOAgent.size() > 0){
 			for(int i = 0; i < mrap.fakeSeerCOAgent.size(); i++){
-			if(getLatestDayGameInfo().getAliveAgentList().contains(mrap.fakeSeerCOAgent.get(i)) && !blackAgent.contains(mrap.fakeSeerCOAgent.get(i)) && !whiteSeerAgent.contains(mrap.fakeSeerCOAgent.get(i))){
+			if(getLatestDayGameInfo().getAliveAgentList().contains(mrap.fakeSeerCOAgent.get(i)) && !blackAgent.contains(mrap.fakeSeerCOAgent.get(i)) && !whitefakeSeerAgent.contains(mrap.fakeSeerCOAgent.get(i))){
 			fakeSeerCOvoteAgent.add(mrap.fakeSeerCOAgent.get(i));
-			}}}
+			}}}//偽占い師が狼や占い白に入っていなければ
 		List<Agent> voteCandidates = new ArrayList<Agent>();
 		List<Agent> voteAllCandidates = new ArrayList<Agent>();
 		voteCandidates.addAll(getLatestDayGameInfo().getAliveAgentList());
@@ -1150,8 +1140,10 @@ if(getLatestDayGameInfo().getAliveAgentList().contains(judge.getTarget())){
 		voteCandidates.removeAll(whiteSeerAgent);}
 		if(fakeSeerCOvoteAgent.size() > 0){
 		voteCandidates.removeAll(fakeSeerCOvoteAgent);}
-		if(MEDIUMvoteAgent.size() > 0){
-		voteCandidates.removeAll(MEDIUMvoteAgent);}
+		if(whitefakeSeerAgent.size() > 0){
+			voteCandidates.removeAll(whitefakeSeerAgent);}
+		if(SeervoteAgent.size() > 0){
+		voteCandidates.removeAll(SeervoteAgent);}
 		if(blackAgent.size() > 0){
 		voteCandidates.removeAll(blackAgent);}
 		if(fakeMEDIUMvoteAgent.size() > 0){
@@ -1162,28 +1154,47 @@ if(getLatestDayGameInfo().getAliveAgentList().contains(judge.getTarget())){
 			for(HW = 0; HW < mrap.div.get(mrap.fakeSeerCOAgent.get(LW)).size();HW++){
 			if(voteAllCandidates.contains(mrap.div.get(mrap.fakeSeerCOAgent.get(LW)).get(HW).getTarget()) && mrap.div.get(mrap.fakeSeerCOAgent.get(LW)).get(HW).getResult() == Species.WEREWOLF){
 				voteAllCandidates.remove(mrap.div.get(mrap.fakeSeerCOAgent.get(LW)).get(HW).getTarget());
+				oneblackAgent.add(mrap.div.get(mrap.fakeSeerCOAgent.get(LW)).get(HW).getTarget());
+			}
+			else if(voteAllCandidates.contains(mrap.div.get(mrap.fakeSeerCOAgent.get(LW)).get(HW).getTarget()) && mrap.div.get(mrap.fakeSeerCOAgent.get(LW)).get(HW).getResult() == Species.HUMAN){
+				voteAllCandidates.remove(mrap.div.get(mrap.fakeSeerCOAgent.get(LW)).get(HW).getTarget());
+				onewhiteAgent.add(mrap.div.get(mrap.fakeSeerCOAgent.get(LW)).get(HW).getTarget());
 			}
 			}
+			}//偽占いの占い先を除外
+		for(LW = 0; LW < mrap.SeerCOAgent.size(); LW++){
+			for(HW = 0; HW < mrap.div.get(mrap.SeerCOAgent.get(LW)).size();HW++){
+			if(voteAllCandidates.contains(mrap.div.get(mrap.SeerCOAgent.get(LW)).get(HW).getTarget()) && mrap.div.get(mrap.SeerCOAgent.get(LW)).get(HW).getResult() == Species.WEREWOLF){
+				voteAllCandidates.remove(mrap.div.get(mrap.SeerCOAgent.get(LW)).get(HW).getTarget());
+				oneblackAgent.add(mrap.div.get(mrap.SeerCOAgent.get(LW)).get(HW).getTarget());
 			}
+			if(voteAllCandidates.contains(mrap.div.get(mrap.SeerCOAgent.get(LW)).get(HW).getTarget()) && mrap.div.get(mrap.SeerCOAgent.get(LW)).get(HW).getResult() == Species.HUMAN){
+				voteAllCandidates.remove(mrap.div.get(mrap.SeerCOAgent.get(LW)).get(HW).getTarget());
+				onewhiteAgent.add(mrap.div.get(mrap.SeerCOAgent.get(LW)).get(HW).getTarget());
+			}
+			}
+			}//グレー占いの占い先を除外
 		
-		
-		System.out.printf("投票先狼:%s\n", blackAgent);
-		System.out.printf("投票先霊能偽:%s\n", fakeMEDIUMvoteAgent);
-		System.out.printf("投票先自分からグレー、役職持ち除く:%s\n", voteCandidates);
+		System.out.printf("投票先信占から狼:%s\n", blackAgent);
+		System.out.printf("投票先誰かから狼:%s\n", oneblackAgent);
+		System.out.printf("投票先霊能偽グレー:%s\n", fakeMEDIUMvoteAgent);
+		System.out.printf("投票先信占からグレー、役職持ち除く:%s\n", voteCandidates);
 		System.out.printf("投票先全員からグレー、役職持ち除く:%s\n", voteAllCandidates);
-		System.out.printf("投票先霊能グレー:%s\n", MEDIUMvoteAgent);
-		System.out.printf("投票先占いグレー:%s\n", fakeSeerCOvoteAgent);
+		System.out.printf("投票先占いグレー:%s\n", SeervoteAgent);
+		System.out.printf("投票先偽占い:%s\n", fakeSeerCOvoteAgent);
 		System.out.printf("投票先占い白:%s\n", whiteSeerAgent);
-		System.out.printf("投票先霊能白:%s\n", whiteMEDIUMAgent);
-		System.out.printf("投票先自分からグレー白:%s\n", whiteAgent);
+		System.out.printf("投票先霊能偽白:%s\n", whiteMEDIUMAgent);
+		System.out.printf("投票先誰かからグレー白:%s\n", onewhiteAgent);
+		System.out.printf("投票先信占からグレー白:%s\n", whiteAgent);
+		double RAN1 = Math.random() * 4;
 			if(mrap.isVote == true){
 			return mrap.Voteagt;
 			}
 			else if(mrap.DetectWP < 4){
 			if(blackAgent.size() > 0){//人狼を見つけていれば人狼に
 				return randomSelect(blackAgent);}
-			else if(fakeMEDIUMvoteAgent.size() > 0){//偽の霊能者がいれば偽の霊能者に
-				return randomSelect(fakeMEDIUMvoteAgent);}
+			else if(fakeSeerCOvoteAgent.size() > 0 && RAN1 < mrap.nowday){//偽の占い師がいれば偽の占い師に
+				return randomSelect(fakeSeerCOvoteAgent);}
 			else if(voteAllCandidates.size() > 0 && mrap.nowday < 4){
 				Agent agt1 = voteAllCandidates.get(0);
 				if(mrap.nowday == 1){
@@ -1215,7 +1226,7 @@ if(getLatestDayGameInfo().getAliveAgentList().contains(judge.getTarget())){
 						return agt1;}
 					else{
 						return randomSelect(voteAllCandidates);}}}
-			else if(voteCandidates.size() > 0){//４日目以降は自分の占い結果のみを使用
+			else if(voteCandidates.size() > 0){//４日目以降は信頼できる占い師の占い結果のみを使用
 				Agent agt1 = voteCandidates.get(0);
 					double sum1 = 0;
 					for(i = 0;i < voteCandidates.size(); i++){
@@ -1227,14 +1238,14 @@ if(getLatestDayGameInfo().getAliveAgentList().contains(judge.getTarget())){
 						return agt1;}
 					else{
 						return randomSelect(voteCandidates);}}
-			else if(MEDIUMvoteAgent.size() > 0){
-				return randomSelect(MEDIUMvoteAgent);}
+			else if(SeervoteAgent.size() > 0){
+				return randomSelect(SeervoteAgent);}//占いグレー
 			else if(fakeSeerCOvoteAgent.size() > 0){
-				return randomSelect(fakeSeerCOvoteAgent);}
+				return randomSelect(fakeSeerCOvoteAgent);}//偽占い
 			else if(whiteSeerAgent.size() > 0){
-				return randomSelect(whiteSeerAgent);}            
+				return randomSelect(whiteSeerAgent);}//占い白            
 			else if(whiteMEDIUMAgent.size() > 0){
-				return randomSelect(whiteMEDIUMAgent);}
+				return randomSelect(whiteMEDIUMAgent);}//霊能白
 			else{
 				return randomSelect(whiteAgent);}}
 		else{//人外を4人見つけていれば
@@ -1242,8 +1253,8 @@ if(getLatestDayGameInfo().getAliveAgentList().contains(judge.getTarget())){
 				return randomSelect(blackAgent);}
 			else if(fakeMEDIUMvoteAgent.size() > 0){//偽の霊能者がいれば偽の霊能者に
 			    return randomSelect(fakeMEDIUMvoteAgent);}
-			else if(MEDIUMvoteAgent.size() > 0){//霊能のグレー
-				return randomSelect(MEDIUMvoteAgent);}
+			else if(SeervoteAgent.size() > 0){//占いのグレー
+				return randomSelect(SeervoteAgent);}
 			else if(fakeSeerCOvoteAgent.size() > 0){//偽占いのグレー
 				return randomSelect(fakeSeerCOvoteAgent);}
 			else{
@@ -1261,5 +1272,8 @@ if(getLatestDayGameInfo().getAliveAgentList().contains(judge.getTarget())){
 		int num = new Random().nextInt(agentList.size());
 		return agentList.get(num);
 	}
-}
+	
+	
+	
 
+}
