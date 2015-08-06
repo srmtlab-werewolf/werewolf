@@ -28,9 +28,10 @@ public class MyRoleAssignPlayer extends AbstractRoleAssignPlayer {
 	//public double[][] myThinkJob;
 
 	
-	MySeer meS = new MySeer(this);
-	MyMedium meM = new MyMedium(this);
-	MyVillager meV = new MyVillager(this);
+	//MySeer meS = new MySeer(this);
+	//MyMedium meM = new MyMedium(this);
+	//MyVillager meV = new MyVillager(this);
+	MyBodyguard meB = new MyBodyguard(this);
 	public double BOM = 0.25;//BorderOfMedium
 	public double BOS = 0.25;//BorderOfSeer
 	public double TWV = 0.3;//TalkWeightVote
@@ -139,9 +140,10 @@ public class MyRoleAssignPlayer extends AbstractRoleAssignPlayer {
 	
 	public MyRoleAssignPlayer(){
 		
-		setSeerPlayer(meS);
-		setMediumPlayer(meM);
-		setVillagerPlayer(meV);
+		//setSeerPlayer(meS);
+		//setMediumPlayer(meM);
+		//setVillagerPlayer(meV);
+		setBodyguardPlayer(meB);
 		//setVillagerPlayer(new MyVillager());
 		
 	}

@@ -465,12 +465,42 @@ public class MyMedium extends AbstractMedium {
 		output();
 	}
 	
-
-	
+	public void SeerCO1(){
+		for(int M1 = 0; M1 < mrap.SeerCOAgent.size();M1++){
+			
+			for(int M2 = 0; M2 < mrap.SeerCOAgent.size();M2++){
+				if(M1 != M2){
+					mrap.HaveTrust[mrap.SeerCOAgent.get(M1).getAgentIdx()][mrap.SeerCOAgent.get(M2).getAgentIdx()] = 0.0;
+				}}
+			for(int M2 = 0; M2 < mrap.fakeSeerCOAgent.size();M2++){
+				mrap.HaveTrust[mrap.SeerCOAgent.get(M1).getAgentIdx()][mrap.fakeSeerCOAgent.get(M2).getAgentIdx()] = 0.0;
+			}
+			}
+		for(int M1 = 0; M1 < mrap.fakeSeerCOAgent.size();M1++){
+			TON[DEN] = mrap.fakeSeerCOAgent.get(M1).getAgentIdx();
+			DEN++;
+			for(int M2 = 0; M2 < mrap.fakeSeerCOAgent.size();M2++){
+				
+				if(M1 != M2){
+					mrap.HaveTrust[mrap.fakeSeerCOAgent.get(M1).getAgentIdx()][mrap.fakeSeerCOAgent.get(M2).getAgentIdx()] = 0.0;
+				}}
+			for(int M2 = 0; M2 < mrap.SeerCOAgent.size();M2++){
+				
+				mrap.HaveTrust[mrap.fakeSeerCOAgent.get(M1).getAgentIdx()][mrap.SeerCOAgent.get(M2).getAgentIdx()] = 0.0;
+			}
+			}
+		for(int M1 = 0; M1 < mrap.SeerCOAgent.size();M1++){
+			TON[DEN] = mrap.SeerCOAgent.get(M1).getAgentIdx();
+			DEN++;
+		}
+	}
+	int TON[] = new int[4];
+	int DEN = 0;
 	
 	void MyMEDIUMUPD(Talk talk, Utterance utterance){
 		int DIVTF;//占い結果が合致していたかどうかの確認
 		int TAN;
+		DEN = 0;
 		if(!talk.getAgent().equals(getMe())){
 			switch (utterance.getTopic()){
 			case COMINGOUT:
@@ -502,40 +532,28 @@ public class MyMedium extends AbstractMedium {
 					mrap.ChangeJob(TAN,100,100,100,100);}
 					else if((mrap.SeerCOAgent.size()  + mrap.fakeSeerCOAgent.size()) == 2){
 						mrap.DetectWP++;
-						for(int M1 = 0; M1 < mrap.SeerCOAgent.size();M1++){
-							for(int M2 = 0; M2 < mrap.SeerCOAgent.size();M2++){
-								if(M1 != M2){
-									mrap.HaveTrust[mrap.SeerCOAgent.get(M1).getAgentIdx()][mrap.SeerCOAgent.get(M2).getAgentIdx()] = 0.0;
-								}}}
 						mrap.PCJ(TAN,Role.VILLAGER,0.0);
 						mrap.PCJ(TAN,Role.MEDIUM,0.0);
 						mrap.PCJ(TAN,Role.BODYGUARD,0.0);
+						SeerCO1();
 						mrap.CleanJob(TAN);
-						mrap.ChangeJob(TAN,mrap.SeerCOAgent.get(0).getAgentIdx(),100,100,100);}
+						mrap.ChangeJob(TAN,TON[0],100,100,100);}
 					else if((mrap.SeerCOAgent.size()  + mrap.fakeSeerCOAgent.size()) == 3){
 						mrap.DetectWP++;
-						for(int M1 = 0; M1 < mrap.SeerCOAgent.size();M1++){
-							for(int M2 = 0; M2 < mrap.SeerCOAgent.size();M2++){
-								if(M1 != M2){
-									mrap.HaveTrust[mrap.SeerCOAgent.get(M1).getAgentIdx()][mrap.SeerCOAgent.get(M2).getAgentIdx()] = 0.0;
-								}}}
 						mrap.PCJ(TAN,Role.VILLAGER,0.0);
 						mrap.PCJ(TAN,Role.MEDIUM,0.0);
 						mrap.PCJ(TAN,Role.BODYGUARD,0.0);
+						SeerCO1();
 					mrap.CleanJob(TAN);
-						mrap.ChangeJob(TAN,mrap.SeerCOAgent.get(0).getAgentIdx(),mrap.SeerCOAgent.get(1).getAgentIdx(),100,100);}
+						mrap.ChangeJob(TAN,TON[0],TON[1],100,100);}
 					else if((mrap.SeerCOAgent.size()  + mrap.fakeSeerCOAgent.size()) == 4){
 						mrap.DetectWP++;
-						for(int M1 = 0; M1 < mrap.SeerCOAgent.size();M1++){
-							for(int M2 = 0; M2 < mrap.SeerCOAgent.size();M2++){
-								if(M1 != M2){
-									mrap.HaveTrust[mrap.SeerCOAgent.get(M1).getAgentIdx()][mrap.SeerCOAgent.get(M2).getAgentIdx()] = 0.0;
-								}}}
 						mrap.PCJ(TAN,Role.VILLAGER,0.0);
 						mrap.PCJ(TAN,Role.MEDIUM,0.0);
 						mrap.PCJ(TAN,Role.BODYGUARD,0.0);
+						SeerCO1();
 					mrap.CleanJob(TAN);
-						mrap.ChangeJob(TAN,mrap.SeerCOAgent.get(0).getAgentIdx(),mrap.SeerCOAgent.get(1).getAgentIdx(),mrap.SeerCOAgent.get(2).getAgentIdx(),100);}
+						mrap.ChangeJob(TAN,TON[0],TON[1],TON[2],100);}
 					if((mrap.SeerCOAgent.size()  + mrap.fakeSeerCOAgent.size()) >= 2){
 						int MC, MD;
 						for(MC = 1; MC <= mrap.MaxNum; MC++){
