@@ -43,56 +43,56 @@ public class MyRoleAssignPlayer extends AbstractRoleAssignPlayer {
 	public double TWI = 0.3;//TalkWeightInq
 	public double TWG = 0.3;//TalkWeightGuard
 	public double WV = 0.5;//WightVote
-	public Role myrole;
+	public Role myrole;//自分の役職
 	public int MediNum;//現在信頼している霊能者の番号
 	public int SeerNum;//現在信頼している占い師の番号
 	public int i,k,s;
 	public int PP;
 	public int BGA = 0;//襲撃者なしが起きると１にする
-	public int FirstMEDIUMCODay = 100;
-	public int FirstSeerCODay = 100;
-	public int MyState = 0;
+	public int FirstMEDIUMCODay = 100;//最初に霊能COが出た日
+	public int FirstSeerCODay = 100;//最初に占いCOが出た日
+	public int MyState = 0;//自分が生きていれば０，死んでたら１
 	public List<Integer> A1 = new ArrayList<Integer>();
-	public int nowday;
+	public int nowday;//今日の日付
 	public double B1[] = new double[6];
 	public double C1[] = new double[16];
 	public double D1[] = new double[6];
 	public double BB;
-	public double MyThinkJob[][] = new double[16][6]; 
+	public double MyThinkJob[][] = new double[16][6]; //自分から見た他の職業値
 	public double ThinkMEDIUMJob[][] = new double[16][6];//霊能以外で使用
 	public double ThinkSEERJob[][] = new double[16][6];//占い師以外で使用
 	public double ThinkSEMEJob[][] = new double[16][6];//村人と狩人で使用
-	public double HaveTrust[][] = new double[16][16];
-	public double prelogit[][] = new double[16][16];
-	public double logit[][] = new double[16][16];
-	public int DetectWP = 0;//４人見つけたら決め打ちに移行できるので
-	public int DetectWPO[] = new int[16];
+	public double HaveTrust[][] = new double[16][16];//全員から全員への信頼度，高いと信頼している
+	public double prelogit[][] = new double[16][16];//ロジスティック関数で使用，前日までのを記録
+	public double logit[][] = new double[16][16];//ロジシュティック関数で使用
+	public int DetectWP = 0;//人外露出数，４人見つけたら決め打ちに移行できるので
+	public int DetectWPO[] = new int[16];//それぞれからみた人外露出数
 	public int MeDetectWP = 0;//霊能決め打ちでの人外露出
 	public int SeDetectWP = 0;//占い決めうちでの人外露出
 	public int ThinkJ[] = new int[16];
 	public int DayTalkNum[][] = new int[15][16];//その日にしたCO、結果報告以外の発言数
-	public int MyNum;
-	public int readTalkNum = 0;
-	public int MaxNum = 15;
-	public int VILLAGERNum = 8;
-	public int SEERNum = 1;
-	public int MEDIUMNum = 1;
-	public int BODYGUARDNum = 1;
-	public int WEREWOLFNum = 3;
-	public int POSSESSEDNum = 1;
-	public int VILLAGERDetectNum = 0;
-	public int SEERDetectNum = 0;
-	public int MEDIUMDetectNum = 0;
-	public int BODYGUARDDetectNum = 0;
-	public int WEREWOLFDetectNum = 0;
-	public int POSSESSEDDetectNum = 0;
-	public int NowNum = 15;
-	public int AliveVILLAGERNum = 8;
-	public int AliveSEERNum = 1;
-	public int AliveMEDIUMNum = 1;
-	public int AliveBODYGUARDNum = 1;
-	public int AliveWEREWOLFNum = 3;
-	public int AlivePOSSESSEDNum = 1;
+	public int MyNum;//自分の番号
+	public int readTalkNum = 0;//その日の何番目の会話を読むか
+	public int MaxNum = 15;//全員の数
+	public int VILLAGERNum = 8;//村人総数
+	public int SEERNum = 1;//占い師総数
+	public int MEDIUMNum = 1;//霊能者総数
+	public int BODYGUARDNum = 1;//狩うど総数
+	public int WEREWOLFNum = 3;//狼総数
+	public int POSSESSEDNum = 1;//狂人総数
+	public int VILLAGERDetectNum = 0;//村人発見数（自分視点）
+	public int SEERDetectNum = 0;//占い師発見数
+	public int MEDIUMDetectNum = 0;//霊能者発見数
+	public int BODYGUARDDetectNum = 0;//狩人発見数
+	public int WEREWOLFDetectNum = 0;//人狼発見数
+	public int POSSESSEDDetectNum = 0;//狂人発見数
+	public int NowNum = 15;//現在生きている数
+	public int AliveVILLAGERNum = 8;//生きている村人数
+	public int AliveSEERNum = 1;//生きている占い師数
+	public int AliveMEDIUMNum = 1;//生きている霊能者数
+	public int AliveBODYGUARDNum = 1;//生きている狩人数
+	public int AliveWEREWOLFNum = 3;//生きている人狼数
+	public int AlivePOSSESSEDNum = 1;//生きている狂人数
 	public List<Agent> AllAgent = new ArrayList<Agent>();
 	public Map<Agent,List<Utterance>> inq = new HashMap<Agent,List<Utterance>>();//霊能結果
 	public Map<Agent,List<Utterance>> div = new HashMap<Agent,List<Utterance>>();//占い結果
@@ -100,38 +100,37 @@ public class MyRoleAssignPlayer extends AbstractRoleAssignPlayer {
 	public Map<Integer,List<Vote>> vot = new HashMap<Integer,List<Vote>>();//毎日の処刑投票の結果を格納する、Integerは日付
 	public Map<Agent,List<Utterance>> lasttalkvot = new HashMap<Agent,List<Utterance>>();//その日の最後の投票先発言を記録する
 	public int MM = 0;
-	public List<Agent> SeerCOAgent = new ArrayList<Agent>();
-	public List<Agent> AliveSeerCOAgent = new ArrayList<Agent>();
-	public List<Agent> fakeSeerCOAgent = new ArrayList<Agent>();
-	public List<Agent> AlivefakeSeerCOAgent = new ArrayList<Agent>();
-	public List<Agent> fakeMEDIUMAgent = new ArrayList<Agent>();
-	public List<Agent> AlivefakeMEDIUMAgent = new ArrayList<Agent>();
-	public List<Agent> MEDIUMCOAgent = new ArrayList<Agent>();
-	public List<Agent> AliveMEDIUMCOAgent = new ArrayList<Agent>();
-	public List<Agent> BODYGUARDCOAgent = new ArrayList<Agent>();
-	public List<Agent> WhiteAgent = new ArrayList<Agent>();
-	public List<Agent> BlackAgent = new ArrayList<Agent>();
-	public List<Agent> VILLAGERGROUP = new ArrayList<Agent>();
-	public List<Agent> WEREWOLFGROUP = new ArrayList<Agent>();
-	public List<Agent> ExecutedAgent = new ArrayList<Agent>();
-	public List<Agent> AttackedAgent = new ArrayList<Agent>(); 
-	public Map<Agent,Status> map = new HashMap<Agent, Status>();
+	public List<Agent> SeerCOAgent = new ArrayList<Agent>();//占いCOした人物
+	public List<Agent> AliveSeerCOAgent = new ArrayList<Agent>();//生きている占いCOした人物
+	public List<Agent> fakeSeerCOAgent = new ArrayList<Agent>();//偽占いだとわかっている人物
+	public List<Agent> AlivefakeSeerCOAgent = new ArrayList<Agent>();//生きている偽占いだと分かった人物
+	public List<Agent> fakeMEDIUMAgent = new ArrayList<Agent>();//偽霊能だとわかった人物
+	public List<Agent> AlivefakeMEDIUMAgent = new ArrayList<Agent>();//生きている偽霊能だと分かった人物
+	public List<Agent> MEDIUMCOAgent = new ArrayList<Agent>();//霊能COした人物
+	public List<Agent> AliveMEDIUMCOAgent = new ArrayList<Agent>();//生きている霊能COした人物
+	public List<Agent> BODYGUARDCOAgent = new ArrayList<Agent>();//狩人COした人物
+	public List<Agent> WhiteAgent = new ArrayList<Agent>();//占い師で使用，自分から白がでた人物
+	public List<Agent> BlackAgent = new ArrayList<Agent>();//占い師で使用，自分から黒が出た人物
+	public List<Agent> VILLAGERGROUP = new ArrayList<Agent>();//村人陣営
+	public List<Agent> WEREWOLFGROUP = new ArrayList<Agent>();//人狼陣営
+	public List<Agent> ExecutedAgent = new ArrayList<Agent>();//処刑者リスト
+	public List<Agent> AttackedAgent = new ArrayList<Agent>(); //襲撃者リスト
+	public Map<Agent,Status> map = new HashMap<Agent, Status>();//エージェントとその状態マップ
 	public List<Agent> DIVWEREAgent = new ArrayList<Agent>();//誰でもいいので占い師に黒だしされた人物を格納
-	public GameInfo gameInfo1;
-	public List<Agent> WEREWOLFAgent = new ArrayList<Agent>();
-	public List<Agent> AliveWEREWOLFAgent = new ArrayList<Agent>();
-	public List<Agent> VILLAGERAgent = new ArrayList<Agent>();
+	public GameInfo gameInfo1;//その日のgameInfoを格納
+	public List<Agent> WEREWOLFAgent = new ArrayList<Agent>();//人狼だと分かっている人物リスト
+	public List<Agent> AliveWEREWOLFAgent = new ArrayList<Agent>();//生きている人狼リスト
+	public List<Agent> VILLAGERAgent = new ArrayList<Agent>();//村人リスト
 	//public List<Agent> MEDIUMAgent = new ArrayList<Agent>();
-	public List<Agent> BODYGUARDAgent = new ArrayList<Agent>();
-	public List<Agent> POSSESSEDAgent = new ArrayList<Agent>();
-	public List<Judge> judgeList = new ArrayList<Judge>();//占い師と霊能者でこれに結果を格納する
-	public List<Agent> judgeAgentList = new ArrayList<Agent>();
+	public List<Agent> BODYGUARDAgent = new ArrayList<Agent>();//狩人リスト
+	public List<Agent> POSSESSEDAgent = new ArrayList<Agent>();//狂人リスト
+	public List<Judge> judgeList = new ArrayList<Judge>();//占い師と霊能者でこれに結果を格納するどっちでも使える
+	public List<Agent> judgeAgentList = new ArrayList<Agent>();//占い先や霊能先のエージェントを記録
 	public List<Agent> COAgent = new ArrayList<Agent>();//複数COやCOせずに結果報告してくるような謎の行動に対処
-	public List<Talk> AlldaytalkList = new ArrayList<Talk>();
+	public List<Talk> AlldaytalkList = new ArrayList<Talk>();//全部の会話を順番に記録
 	public Map<Integer,List<Talk>> daytalkList = new HashMap<Integer,List<Talk>>();//毎日の発言を格納する、Integerは日付，
-	public boolean isComingOut = false;
-	public boolean isVote = false;
-	public boolean isVoteMEDI = false;
+	public boolean isComingOut = false;//自分がカミングアウトしたかいなか
+	public boolean isVote = false;//
 	public boolean isVoteSeer = false;
 	public Agent Voteagt;
 	public List<Judge> myToldJudgeList = new ArrayList<Judge>();

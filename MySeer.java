@@ -188,7 +188,7 @@ public class MySeer extends AbstractSeer {
 	
 	
 	
-	public void output(){
+	public void output(){//現状を表示，
 		double sum;
 		double sum1[] = new double[16];;
 		if(mrap.MediNum != 0){
@@ -265,7 +265,7 @@ public class MySeer extends AbstractSeer {
 	
 	
 	@Override
-	public void finish() {
+	public void finish() {//最後に得られる情報も表示
 		double sum;
 		double sum1[] = new double[16];;
 		for(i = 1; i <= mrap.MaxNum; i++){
@@ -534,7 +534,7 @@ public class MySeer extends AbstractSeer {
 	}
 	
 
-	public void MEDIUMCO1(){
+	public void MEDIUMCO1(){//霊能者が二人以上でたら呼び出す，それぞれからそれぞれへの信頼度を変更
 		for(int M1 = 0; M1 < mrap.fakeMEDIUMAgent.size();M1++){
 			TON[DEN] = mrap.fakeMEDIUMAgent.get(M1).getAgentIdx();
 			DEN++;
@@ -561,7 +561,7 @@ public class MySeer extends AbstractSeer {
 	}
 	int TON[] = new int[4];
 	int DEN = 0;
-	void MySeerUPD(Talk talk, Utterance utterance){
+	void MySeerUPD(Talk talk, Utterance utterance){//updateから呼び出す，他の人物の発言を処理
 		int INQTF;//霊能結果が合致してたかどうかの確認
 		int TAN;
 		DEN = 0;
@@ -766,7 +766,7 @@ public class MySeer extends AbstractSeer {
 					mrap.UJP(talk.getAgent().getAgentIdx(),Role.POSSESSED,0.1);
 					mrap.UJP(talk.getAgent().getAgentIdx(),Role.WEREWOLF,0.1);
 				}//人外の値上昇
-				mrap.adddiv(talk.getAgent(), utterance);
+				mrap.adddiv(talk.getAgent(), utterance);//結果格納
 				RestartUPD(talk.getAgent().getAgentIdx(), Role.SEER);
 				break;
 			case INQUESTED://霊能結果報告
@@ -775,7 +775,7 @@ public class MySeer extends AbstractSeer {
 					mrap.UJP(talk.getAgent().getAgentIdx(),Role.WEREWOLF,0.1);
 				}//人外の値上昇
 				TAN = utterance.getTarget().getAgentIdx(); 
-				INQTF = mrap.Seeraddinq(talk.getAgent(),utterance);
+				INQTF = mrap.Seeraddinq(talk.getAgent(),utterance);//結果格納
 				if(INQTF == 1 && !mrap.fakeMEDIUMAgent.contains(talk.getAgent()) && mrap.MEDIUMCOAgent.contains(talk.getAgent())){//まだ偽だと分かっていない人の霊能結果が食い違っていた場合
 					mrap.BlackAgent.add(talk.getAgent());
 					mrap.MEDIUMCOAgent.remove(talk.getAgent());
@@ -789,7 +789,7 @@ public class MySeer extends AbstractSeer {
 				RestartUPD(talk.getAgent().getAgentIdx(), Role.MEDIUM);
 				break;
 				
-			case ESTIMATE:
+			case ESTIMATE://あまり使ってない，信頼度増減
 				mrap.DayTalkNum[mrap.nowday][talk.getAgent().getAgentIdx()]++;
 				if(utterance.getRole() == Role.WEREWOLF || utterance.getRole() == Role.POSSESSED){
 					mrap.CHT(talk.getAgent().getAgentIdx(),utterance.getTarget().getAgentIdx(),-mrap.TWE);}
@@ -797,7 +797,7 @@ public class MySeer extends AbstractSeer {
 					mrap.CHT(talk.getAgent().getAgentIdx(),utterance.getTarget().getAgentIdx(),mrap.TWE);
 				}
 				break;
-			case GUARDED:
+			case GUARDED://ガード発言だが，あまり考慮してない
 				if(!mrap.BODYGUARDCOAgent.contains(talk.getAgent())){//まだCOしてないのに霊能結果報告なんてしてきたら
 					mrap.UJP(talk.getAgent().getAgentIdx(),Role.POSSESSED,0.1);
 					mrap.UJP(talk.getAgent().getAgentIdx(),Role.WEREWOLF,0.1);
@@ -806,7 +806,7 @@ public class MySeer extends AbstractSeer {
 					mrap.UJP(talk.getAgent().getAgentIdx(),Role.BODYGUARD,(mrap.BGA / 2.0) * mrap.TWG);
 				}
 				break;
-			case VOTE:
+			case VOTE://vote発言を処理
 				mrap.DayTalkNum[mrap.nowday][talk.getAgent().getAgentIdx()]++;
 				mrap.CHT(talk.getAgent().getAgentIdx(),utterance.getTarget().getAgentIdx(),-mrap.TWV);
 				if(mrap.lasttalkvot.get(talk.getAgent()).size() >= 1){//既にこの日投票発言をしていたら
@@ -833,15 +833,15 @@ public class MySeer extends AbstractSeer {
 				
 				
 				break;
-			case AGREE:
+			case AGREE://良く分からない
 				mrap.DayTalkNum[mrap.nowday][talk.getAgent().getAgentIdx()]++;
 				mrap.CHT(talk.getAgent().getAgentIdx(),utterance.getTarget().getAgentIdx(),mrap.TWA);
 				break;
-			case DISAGREE:
+			case DISAGREE://同様
 				mrap.DayTalkNum[mrap.nowday][talk.getAgent().getAgentIdx()]++;
 				mrap.CHT(talk.getAgent().getAgentIdx(),utterance.getTarget().getAgentIdx(),mrap.TWDA);
 				break;
-			case SKIP:
+			case SKIP://OVERと違いがないので，なくしてもよい
 				mrap.DJP(talk.getAgent().getAgentIdx(), Role.VILLAGER, 0.05);
 				break;
 				default:
@@ -850,14 +850,14 @@ public class MySeer extends AbstractSeer {
 	}
 	
 	
-	void RestartUPD(int Rn, Role rerole){//他のエージェントが役職持ちだと分かった時に役職持ちの状態でその日の最初から
+	void RestartUPD(int Rn, Role rerole){//他のエージェントが役職持ちだと分かった時に役職持ちの状態でその日の最初から，（占い師だと分かってたり占い結果がある状態だと相手の考え方が変わるため）
 		int RS;
 		for(RS = 1; RS <= 15; RS++){
 		mrap.HaveTrust[Rn][RS] = 1 / (1 + Math.exp(-mrap.prelogit[Rn][RS]));//評価を当日の最初まで巻き戻す
 		}
 		for(RS = 0; RS < mrap.daytalkList.get(mrap.nowday).size() - 1; RS++){
 			Utterance utterance = new Utterance(mrap.daytalkList.get(mrap.nowday).get(RS).getContent());
-		switch(rerole){
+		switch(rerole){//やり直すのは占い師と霊能者だけ
 		case SEER:
 			mrap.OtSeerUPD(mrap.daytalkList.get(mrap.nowday).get(RS),utterance,Rn);
 			break;
@@ -930,7 +930,7 @@ public class MySeer extends AbstractSeer {
 			
 				MySeerUPD(talk,utterance);//最初に自分の処理を行う
 			
-			for(int M = 1; M < 16; M++){
+			for(int M = 1; M < 16; M++){//自分以外の全員の処理を行う
 				if(getMe().getAgentIdx() != M){
 			
 			if(mrap.fakeSeerCOAgent.contains(Agent.getAgent(M))){
@@ -949,7 +949,7 @@ public class MySeer extends AbstractSeer {
 			}
 			mrap.readTalkNum++;
 		}//ここまでトークの整理
-		if(mrap.myrole != Role.MEDIUM){
+		if(mrap.myrole != Role.MEDIUM){//信頼できる霊能者がいるか確認
 		if(mrap.MEDIUMCOAgent.size() > 0){
 		for(i = 0; i < mrap.MEDIUMCOAgent.size(); i++){
 		if(mrap.BOM < mrap.MyThinkJob[mrap.MEDIUMCOAgent.get(i).getAgentIdx()][2]){//霊能者の信頼度が高ければ
@@ -1051,7 +1051,7 @@ public class MySeer extends AbstractSeer {
 	}
 
 	@Override
-	public Agent vote() {
+	public Agent vote() {//投票は下記output表の上から順に優先
 		//List<Agent> voteCandidates = new ArrayList<Agent>();
 		double VoteJob[][] = new double[16][6];
 		if(mrap.MediNum == 0){//現在信頼できそうな霊能者がいればその結果を反映、
